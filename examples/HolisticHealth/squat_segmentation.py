@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import time
 import mediapipe as mp
+import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+
 import modules.HolisticModule as hm
 
 detector = hm.HolisticDetector()
