@@ -4,7 +4,6 @@ argon2-cffi==21.1.0
 astor==0.8.1
 astunparse==1.6.3
 attrs==21.2.0
-backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
 backports.zoneinfo==0.2.1
 base58==2.1.0
 bleach==4.1.0
@@ -14,10 +13,7 @@ certifi==2021.5.30
 cffi==1.14.6
 charset-normalizer==2.0.4
 click==7.1.2
-colorama @ file:///tmp/build/80754af9/colorama_1607707115595/work
 cycler==0.10.0
-debugpy @ file:///C:/ci/debugpy_1629222854708/work
-decorator @ file:///tmp/build/80754af9/decorator_1621259047763/work
 defusedxml==0.7.1
 entrypoints==0.3
 flatbuffers==1.12
@@ -30,16 +26,10 @@ google-pasta==0.2.0
 grpcio==1.34.1
 h5py==3.1.0
 idna==3.2
-ipykernel @ file:///C:/ci/ipykernel_1629995240690/work/dist/ipykernel-6.2.0-py3-none-any.whl
-ipython @ file:///C:/ci/ipython_1628244008373/work
-ipython-genutils @ file:///tmp/build/80754af9/ipython_genutils_1606773439826/work
 ipywidgets==7.6.5
-jedi @ file:///C:/ci/jedi_1611315808330/work
 Jinja2==3.0.2
 joblib==1.0.1
 jsonschema==4.0.1
-jupyter-client @ file:///tmp/build/80754af9/jupyter_client_1616770841739/work
-jupyter-core @ file:///C:/ci/jupyter_core_1612213356021/work
 jupyterlab-pygments==0.1.2
 jupyterlab-widgets==1.0.2
 keras-nightly==2.5.0.dev2021032900
@@ -48,7 +38,6 @@ kiwisolver==1.3.2
 Markdown==3.3.4
 MarkupSafe==2.0.1
 matplotlib==3.4.3
-matplotlib-inline @ file:///tmp/build/80754af9/matplotlib-inline_1628242447089/work
 mediapipe==0.8.6
 mistune==0.8.4
 nbclient==0.5.4
@@ -63,11 +52,8 @@ opt-einsum==3.3.0
 packaging==21.0
 pandas==1.3.2
 pandocfilters==1.5.0
-parso @ file:///tmp/build/80754af9/parso_1617223946239/work
-pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
 Pillow==8.3.1
 prometheus-client==0.11.0
-prompt-toolkit @ file:///tmp/build/80754af9/prompt-toolkit_1616415428029/work
 protobuf==3.17.3
 pyarrow==5.0.0
 pyasn1==0.4.8
@@ -75,23 +61,19 @@ pyasn1-modules==0.2.8
 pycparser==2.20
 pydeck==0.7.0
 pygame==2.0.1
-Pygments @ file:///tmp/build/80754af9/pygments_1629234116488/work
 pynput==1.7.3
 pyparsing==2.4.7
 pypiwin32==223
 pyrsistent==0.18.0
-python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 pytz==2021.1
 pywin32==301
 pywinpty==1.1.4
-pyzmq @ file:///C:/ci/pyzmq_1628276144921/work
 requests==2.26.0
 requests-oauthlib==1.3.0
 rsa==4.7.2
 scikit-learn==0.24.2
 scipy==1.7.1
 Send2Trash==1.8.0
-six @ file:///tmp/build/80754af9/six_1623709665295/work
 sklearn==0.0
 smmap==4.0.0
 streamlit==0.85.0
@@ -106,15 +88,12 @@ testpath==0.5.0
 threadpoolctl==2.2.0
 toml==0.10.2
 toolz==0.11.1
-tornado @ file:///C:/ci/tornado_1606942392901/work
-traitlets @ file:///home/ktietz/src/ci/traitlets_1611929699868/work
 typing-extensions==3.7.4.3
 tzdata==2021.2.post0
 tzlocal==3.0
 urllib3==1.26.6
 validators==0.18.2
 watchdog==2.1.6
-wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work
 webencodings==0.5.1
 Werkzeug==2.0.1
 widgetsnbextension==3.5.1
