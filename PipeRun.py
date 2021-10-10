@@ -23,10 +23,10 @@ import hydralit as hy
 import hydralit_components as hc
 
 ## 네비바 ##
-app = hy.HydraApp(title='Simple Multi-Page App',
-  favicon="🐙",
+app = hy.HydraApp(title='PipeRun | Home',
+  favicon="🏃‍♂️",
   hide_streamlit_markers=False,
-  # use_banner_images=["./images/gym.jpg",None,{'header':"<h1 style='text-align:center;padding: 0px 0px;color:black;font-size:200%;'>Secure Hydralit Explorer</h1><br>"},None,"./images/gym.jpg"],
+  use_banner_images=[None,None,{'header':"<h3 style='text-align:center;padding: 0px 0px;color:black;font-size:200%; font-weight:800; color:#2452c0;text-decoration:none'><a style='text-decoration:none' href='http://localhost:8501/'>PipeRun</a></h3><br>"},None,None],
   navbar_theme={'txc_inactive':'#000000', 'menu_background':'#FFFFFF', 'txc_active' : "#000000", 'option_active':'#FFFFFF'},
   )
 
@@ -286,11 +286,17 @@ class App():
             .f_box_txt{font-size:20px; margin-top:20px; margin-bottom:20px; color: #111; white-space: nowrap;}
             .f_box_txt_2{font-size: 16px; color: #414141; text-overflow: ellipsis; overflow: hidden; word-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;}
 
+            .f_main_box{padding-left:40px;padding-top:70px; width:100%; height:600px; background-color : #f8f8f8; }
+            .f_main_box_2{padding-left:100px;padding-top:170px; width:100%; height:400px; background-color :#ffffff; }
+
             .bluepoint{border-bottom : 3px solid #b4e7f8; box-shadow:inset 0 -4px #b4e7f8;}
             .maintxt02{font-size: 22px; color: #a6a6a6; margin-top: 40px;}
             .blue{ color: #2452c0;}
             .footer-txt{color: #fff; font-size:18px;}
+            .footer-txt2{font-size:25px; font-wight:bold; color: #fff;}
 
+            .footer-box{border-top:1px solid #222; margin-top:100px; padding:100px 50px 100px 200px; background-color: #9ea1a9;}
+            .f_copy{font-size:10px; color: #fff;}
 
             </style>
             <body style="font-family:Noto Sans KR">
@@ -380,7 +386,7 @@ class App():
 
                     </div>
                     <div class="row" style="margin-top : 100px; ">
-                        <div class="col-md-12"  style="padding-left:40px;padding-top:70px; width:100%; height:600px; background-color : #f8f8f8; padding_top:200px; ">
+                        <div class="col-md-12 f_main_box">
                             <div class="col-md-12 text-center">
                                 <p class="main-tit">Features</p>
                             </div>
@@ -405,27 +411,29 @@ class App():
                                 <p class="f_box_txt">논리 물리 통합 모델링</p>
                                 <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
                             </div>
-
+                        </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-12 f_main_box_2">
+                            <p class="maintxt01" style="font-weight:bold; color: #2452c0;text-align:center;">어렵기만 한 운동 자세, 이제 걱정마세요</p>
+                            <p class="maintxt02" style="text-align:center;">카메라를 켜보세요. 당신의 모든 움직임을 인식하고 알려줍니다. </p>
+                        </div>
                     </div>
-
                 </div>
             </body>
-            <footer style="border-top:1px solid #222; margin-top:100px; padding:100px 50px 100px 200px; background-color: #9ea1a9;">
+            <footer class="footer-box">
                 <div class="row">
                     <div class="col-md-12">
-                        <i style="font-size:30px; color: #fff;" class="fas fa-running"></i>
-                        <p style="font-size:30px; font-wight:bold; color: #fff;">Pipe Run</p>
-
+                        <p class="footer-txt2">하이파이프 <i style="font-size:30px; color: #fff;" class="fas fa-running"></i></p>
                     </div>
                     <div class="col-md-12">
                         <p class="footer-txt">전다운, 강민지, 이국진, 전선유</p>
                     </div>
-                    <p style="font-size:10px; color: #fff;">Copyright © 2021 Pipe Run. All Rights Reserved.</p>
+                    <p class="f_copy">Copyright © 2021 Pipe Run. All Rights Reserved.</p>
             </footer>
             </html>
             """,
-            height=3850)
+            height=4600)
 
         # st.image(images/gym.jpg)
 
