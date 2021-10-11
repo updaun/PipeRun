@@ -39,13 +39,7 @@ for imPath in myList:
     overlayList.append(image)
 # print(len(overlayList))
 
-header_1 = overlayList[1]
-header_2 = overlayList[2]
-header_3 = overlayList[4]
-header_4 = overlayList[6]
 
-# default color
-drawColor = (230, 230, 230)
 
 # 비디오 인풋
 cap = cv2.VideoCapture(0)
@@ -61,7 +55,16 @@ actions = ['fit', 'stop']
 seq_length = 30
 
 # default mode
+mode = "exercise"
 app_mode = "walking"
+
+header_1 = overlayList[1]
+header_2 = overlayList[2]
+header_3 = overlayList[4]
+header_4 = overlayList[6]
+header_5 = overlayList[8]
+
+select_count = 0
 
 while True:
 
@@ -85,7 +88,7 @@ while True:
         x1, y1 = lmList[20][1:3]
         x2, y2 = lmList[19][1:3]
         foot_x, foot_y = lmList[28][1:3]
-        
+
         joint = np.zeros((33, 4))
         for j, lm in enumerate(result.pose_landmarks.landmark):
             joint[j] = [lm.x, lm.y, lm.z, lm.visibility]
@@ -115,83 +118,128 @@ while True:
         # 시퀀스 데이터와 넘파이화
         input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
         input_data = np.array(input_data, dtype=np.float32)
-
-        # Checking for the click
-        if x1 < 100:
-            # walking 
-            if 90<=y1<190:
-                print("walking mode")
-                header_1 = overlayList[1]
-                header_2 = overlayList[2]
-                header_3 = overlayList[4]
-                header_4 = overlayList[6]
-
-                app_mode = "walking"
-
-            # running
-            elif 290<=y1<390:
-                print("running mode")
-                header_1 = overlayList[0]
-                header_2 = overlayList[3]
-                header_3 = overlayList[4]
-                header_4 = overlayList[6]
-
-                app_mode = "running"
-
-        elif x2 > 540:
-            # jumping
-            if 90<=y2<190:
-                print("jumping mode")
-                header_1 = overlayList[0]
-                header_2 = overlayList[2]
-                header_3 = overlayList[5]
-                header_4 = overlayList[6]
-
-                app_mode = "jumping"
-                
-            # air rope
-            elif 290<=y2<390:
-                print("air rope mode")
-                header_1 = overlayList[0]
-                header_2 = overlayList[2]
-                header_3 = overlayList[4]
-                header_4 = overlayList[7]
-
-                app_mode = "air rope"
-                
-        if app_mode == "walking":
-            print("walking mode activate")
-            interpreter_1.set_tensor(input_details[0]['index'], input_data)
-            interpreter_1.invoke()
-            y_pred = interpreter_1.get_tensor(output_details[0]['index'])
-            i_pred = int(np.argmax(y_pred[0]))
-        elif app_mode == "running":
-            print("running mode activate")
-            interpreter_2.set_tensor(input_details[0]['index'], input_data)
-            interpreter_2.invoke()
-            y_pred = interpreter_2.get_tensor(output_details[0]['index'])
-            i_pred = int(np.argmax(y_pred[0]))
-        elif app_mode == "jumping":
-            print("jumping mode activate")
-            interpreter_3.set_tensor(input_details[0]['index'], input_data)
-            interpreter_3.invoke()
-            y_pred = interpreter_3.get_tensor(output_details[0]['index'])
-            i_pred = int(np.argmax(y_pred[0]))
-        elif app_mode == "air rope":
-            print("air rope mode activate")
-            cv2.line(img, (100, 460), (540,460), (0,0,200), 2)
-            if foot_y < 460:
-                interpreter_4.set_tensor(input_details[0]['index'], input_data)
-                interpreter_4.invoke()
-                y_pred = interpreter_4.get_tensor(output_details[0]['index'])
-                i_pred = int(np.argmax(y_pred[0]))
-            else:
-                wording = "Please Show Your Feet"
-                coords = (130, 250)
-                cv2.rectangle(img,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
-                cv2.putText(img, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-            
         
+        if (270<x1<370 and y1 < 50) or (270<x2<370 and y2 < 50):
+            mode = "select" 
+            print("select mode")
+
+        if mode == "exercise":
+            if app_mode == "walking":
+                print("walking mode activate")
+                interpreter_1.set_tensor(input_details[0]['index'], input_data)
+                interpreter_1.invoke()
+                y_pred = interpreter_1.get_tensor(output_details[0]['index'])
+                i_pred = int(np.argmax(y_pred[0]))
+            elif app_mode == "running":
+                print("running mode activate")
+                interpreter_2.set_tensor(input_details[0]['index'], input_data)
+                interpreter_2.invoke()
+                y_pred = interpreter_2.get_tensor(output_details[0]['index'])
+                i_pred = int(np.argmax(y_pred[0]))
+            elif app_mode == "jumping":
+                print("jumping mode activate")
+                interpreter_3.set_tensor(input_details[0]['index'], input_data)
+                interpreter_3.invoke()
+                y_pred = interpreter_3.get_tensor(output_details[0]['index'])
+                i_pred = int(np.argmax(y_pred[0]))
+            elif app_mode == "air rope":
+                print("air rope mode activate")
+                cv2.line(img, (100, 460), (540,460), (0,0,200), 2)
+                if foot_y < 460:
+                    interpreter_4.set_tensor(input_details[0]['index'], input_data)
+                    interpreter_4.invoke()
+                    y_pred = interpreter_4.get_tensor(output_details[0]['index'])
+                    i_pred = int(np.argmax(y_pred[0]))
+                else:
+                    wording = "Please Show Your Feet"
+                    coords = (130, 250)
+                    cv2.rectangle(img,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
+                    cv2.putText(img, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+            
+            img[0:50, 270:370] = header_5
+
+
+        elif mode == "select":
+            header_5 = overlayList[9]
+        # Checking for the click
+            if x1 < 100:
+                # walking 
+                if 90<=y1<190:
+                    print("walking mode")
+                    header_1 = overlayList[1]
+                    header_2 = overlayList[2]
+                    header_3 = overlayList[4]
+                    header_4 = overlayList[6]
+                    
+
+                    app_mode = "walking"
+                    select_count += 1
+                    if select_count > 10:
+                        select_count = 0
+                        app_mode = "walking"
+                        mode = "exercise"
+                        header_5 = overlayList[8]
+
+                # running
+                elif 290<=y1<390:
+                    print("running mode")
+                    header_1 = overlayList[0]
+                    header_2 = overlayList[3]
+                    header_3 = overlayList[4]
+                    header_4 = overlayList[6]
+
+                    app_mode = "running"
+                    select_count += 1
+                    if select_count > 10:
+                        select_count = 0
+                        app_mode = "running"
+                        mode = "exercise"
+                        header_5 = overlayList[8]
+
+            elif x2 > 540:
+                # jumping
+                if 90<=y2<190:
+                    print("jumping mode")
+                    header_1 = overlayList[0]
+                    header_2 = overlayList[2]
+                    header_3 = overlayList[5]
+                    header_4 = overlayList[6]
+
+                    app_mode = "jumping"
+                    select_count += 1
+                    if select_count > 10:
+                        select_count = 0
+                        app_mode = "jumping"
+                        mode = "exercise"
+                        header_5 = overlayList[8]
+                    
+                # air rope
+                elif 290<=y2<390:
+                    print("air rope mode")
+                    header_1 = overlayList[0]
+                    header_2 = overlayList[2]
+                    header_3 = overlayList[4]
+                    header_4 = overlayList[7]
+
+                    app_mode = "air rope"
+                    select_count += 1
+                    if select_count > 10:
+                        select_count = 0
+                        app_mode = "air rope"
+                        mode = "exercise"
+                        header_5 = overlayList[8]
+            
+            
+
+            img[90:190, 0:100] = header_1
+            img[290:390, 0:100] = header_2
+            img[90:190, 540:640] = header_3
+            img[290:390, 540:640] = header_4
+            img[0:50, 270:370] = header_5
+            
+                
+        
+
         action = actions[i_pred]
         action_seq.append(action)
 
@@ -240,10 +288,7 @@ while True:
                     , (10,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
 
-    img[90:190, 0:100] = header_1
-    img[290:390, 0:100] = header_2
-    img[90:190, 540:640] = header_3
-    img[290:390, 540:640] = header_4
+    
 
     cv2.imshow("Image", img)
 
