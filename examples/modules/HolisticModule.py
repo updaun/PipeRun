@@ -50,6 +50,32 @@ class HolisticDetector():
             
         return img
 
+    def findHolisticwithResults(self, img, draw = True):
+        imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB )
+        self.results = self.holistics.process(imgRGB)
+
+        if self.results.pose_landmarks:
+            
+            if draw:
+                # Draw pose, left and right hands, and face landmarks on the image.
+                annotated_image = img.copy()
+
+                # self.mpDraw.draw_landmarks(
+                #     annotated_image, self.results.face_landmarks, self.mpHolistic.FACE_CONNECTIONS)
+                # self.mpDraw.draw_landmarks(
+                #     annotated_image, self.results.left_hand_landmarks, self.mpHolistic.HAND_CONNECTIONS)
+                # self.mpDraw.draw_landmarks(
+                #     annotated_image, self.results.right_hand_landmarks, self.mpHolistic.HAND_CONNECTIONS)
+                # self.mpDraw.draw_landmarks(
+                #     annotated_image, self.results.pose_landmarks, self.mpHolistic.POSE_CONNECTIONS)
+
+                # Plot pose world landmarks.
+                # self.mpDraw.plot_landmarks(
+                #     self.results.pose_world_landmarks, self.mpHolistic.POSE_CONNECTIONS)
+                return self.results
+            
+        return self.results
+
     def findPoseLandmark(self, img, draw=True):
         xList = []
         yList = []

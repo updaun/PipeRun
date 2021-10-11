@@ -23,7 +23,13 @@ import hydralit as hy
 import hydralit_components as hc
 
 ## 네비바 ##
-app = hy.HydraApp(title='Simple Multi-Page App')
+app = hy.HydraApp(title='PipeRun | Home',
+  favicon="🏃‍♂️",
+  hide_streamlit_markers=False,
+  use_banner_images=[None,None,{'header':"<h3 style='text-align:center;padding: 0px 0px;color:black;font-size:200%; font-weight:800; color:#2452c0;text-decoration:none'><a style='text-decoration:none' href='http://localhost:8501/'>PipeRun</a></h3><br>"},None,None],
+  navbar_theme={'txc_inactive':'#000000', 'menu_background':'#FFFFFF', 'txc_active' : "#000000", 'option_active':'#FFFFFF'},
+  )
+
 
 #################################################################################
 
@@ -117,7 +123,7 @@ class Grid:
     def _get_grid_style(self):
         return f"""
         <style>
-        
+
         .wrapper {{
         display: grid;
         grid-template-columns: {self.template_columns};
@@ -254,14 +260,13 @@ class App():
 
     @app.addapp(title='Home', is_home=True)
     def home():
-        # googlefonts
-        components.html(
+        hide_streamlit_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            </style>
             """
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
-
-            """)
+        st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
         # bootstrap
         components.html(
@@ -271,10 +276,28 @@ class App():
             <link rel="preconnect" href="https://fonts.googleapis.com">
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
             <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@500&display=swap" rel="stylesheet">
-           
+            <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" integrity="sha384-HzLeBuhoNPvSl5KYnjx0BT+WB0QEEqLprO+NBkkk5gbc67FTaL7XIGa2w1L0Xbgc" crossorigin="anonymous">
             <style>
             .main_txt{font-size:40px; font-weight:bold;}
             .main_sm_txt{line-height: calc(1.4 + var(--space) / 100); font-size:22px; margin-top : 50px;}
+            .f_box{display:inline-block; margin-right :50px; width:300px; padding: 50px 20px 0 50px; background-color : #ffffff; height:300px;}
+            .main-tit {text-align: center;  margin-bottom: 80px; color: #1f3ec2; font-size: 14px;   text-transform: uppercase; letter-spacing: .2em;}
+            .maintxt01{font-size: 40px;color: #111;font-weight: 200;}
+            .f_box_txt{font-size:20px; margin-top:20px; margin-bottom:20px; color: #111; white-space: nowrap;}
+            .f_box_txt_2{font-size: 16px; color: #414141; text-overflow: ellipsis; overflow: hidden; word-wrap: break-word; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;}
+
+            .f_main_box{padding-left:40px;padding-top:70px; width:100%; height:600px; background-color : #f8f8f8; }
+            .f_main_box_2{padding-left:100px;padding-top:170px; width:100%; height:400px; background-color :#ffffff; }
+
+            .bluepoint{border-bottom : 3px solid #b4e7f8; box-shadow:inset 0 -4px #b4e7f8;}
+            .maintxt02{font-size: 22px; color: #a6a6a6; margin-top: 40px;}
+            .blue{ color: #2452c0;}
+            .footer-txt{color: #fff; font-size:18px;}
+            .footer-txt2{font-size:25px; font-wight:bold; color: #fff;}
+
+            .footer-box{border-top:1px solid #222; margin-top:100px; padding:100px 50px 100px 200px; background-color: #9ea1a9;}
+            .f_copy{font-size:10px; color: #fff;}
+
             </style>
             <body style="font-family:Noto Sans KR">
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-uWxY/CJNBR+1zjPWmfnSnVxwRheevXITnMqoEIeG1LJrdI0GlVs/9cVSyPYXdcSF" crossorigin="anonymous">
@@ -320,62 +343,108 @@ class App():
 
                 <div class="container" >
                     <div class="row " style="margin-bottom:100px; margin-top:100px;">
-                        <div class="col-md-6" >
-                            <p class="main_txt">AI와 함께하는 헬스케어</p>
-                            <p class="main_sm_txt">
-                            인공신경망으로 정확한 운동 자세를 학습한 AI가 당신과 함께 합니다.<br>
-                            카메라를 켜보세요. 당신의 모든 움직임을 인식하고 알려줍니다.<br>
-                            이제 당신이 학습할 차레입니다!<br>
-                            </p>
+                        <div class="col-md-6 col-xs-12" >
+                            <span class="maintxt01">AI와 함께하는 <strong class="bluepoint">헬스케어 </strong></span>
+                            <p class="maintxt02"> 인공신경망으로 정확한 운동 자세를 학습한 AI가 당신과 함께 합니다.<br>
+                            카메라를 켜보세요. <strong class="blue"> 당신의 모든 움직임</strong>을 인식하고 알려줍니다. <br>
+                            이제 당신이 학습할 차레입니다! </p>
 
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-6 col-xs-12">
                             <img src="https://images.pexels.com/photos/6707079/pexels-photo-6707079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500">
                         </div>
                     </div>
-                   
-                
-                   
+
+
+
                     <div class="row">
-                        <div class="col-md-6">
-                            <img src="https://images.pexels.com/photos/4498366/pexels-photo-4498366.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500">  
+                        <div class="col-md-6 col-xs-12">
+                            <img src="https://images.pexels.com/photos/4498366/pexels-photo-4498366.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500">
                         </div>
-                        <div class="col-md-6">
-                            <p class="main_txt">리듬 타고 싶은 멜로디가 있나요?</p>
-                            <p class="main_sm_txt">좋아하는 노래, TOP100, 지루한 인터넷 강의?<br>
+                        <div class="col-md-6 col-xs-12">
+                            <span class="maintxt01">리듬 타고 싶은 <strong class="bluepoint">멜로디</strong>가 있나요?</span>
+                            <p class="maintxt02">좋아하는 노래, TOP100, 지루한 인터넷 강의?<br>
                                 소리만 있으면 무엇이든 가능합니다.<br>
                                 일단 올려주세요!<br>
-                                그리고 리듬에 몸을 맡기고 움직이면 됩니다.
+                                그리고 <strong class="blue">리듬에 몸을 맡기고 움직이면 됩니다.</strong>
                             </p>
 
                         </div>
-                       
+
                     </div>
-                     <div class="row" style="margin-top:100px; padding :100px 0 100px 0; ">
-                        <div class="col-md-12 text-center">
-                            <h2 class="">어렵기만 한 운동 자세, 이제 걱정마세요</h2>
-                            <h5>카메라를 켜보세요. 당신의 모든 움직임을 인식하고 알려줍니다. </h5>
+                    <div class="row " style="margin-bottom:100px; margin-top:100px;">
+                        <div class="col-md-6 col-xs-12" >
+                            <span class="maintxt01">AI와 함께하는 <strong class="bluepoint">헬스케어 </strong></span>
+                            <p class="maintxt02"> 인공신경망으로 정확한 운동 자세를 학습한 AI가 당신과 함께 합니다.<br>
+                            카메라를 켜보세요. <strong class="blue"> 당신의 모든 움직임</strong>을 인식하고 알려줍니다. <br>
+                            이제 당신이 학습할 차레입니다! </p>
+                        </div>
+                        <div class="col-md-6 col-xs-12">
+                            <img src="https://images.pexels.com/photos/6707079/pexels-photo-6707079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500">
+                        </div>
+                    </div>
+
+                    </div>
+                    <div class="row" style="margin-top : 100px; ">
+                        <div class="col-md-12 f_main_box">
+                            <div class="col-md-12 text-center">
+                                <p class="main-tit">Features</p>
+                            </div>
+
+                            <div class="f_box" style="margin-left:200px;">
+                                <img src="https://ko.exerd.com/asset/images/ic_m0301.png">
+                                <p class="f_box_txt">논리 물리 통합 모델링</p>
+                                <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            </div>
+                            <div class="f_box">
+                                <img src="https://ko.exerd.com/asset/images/ic_m0304.png">
+                                <p class="f_box_txt">논리 물리 통합 모델링</p>
+                                <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            </div>
+                            <div class="f_box">
+                                <img src="https://ko.exerd.com/asset/images/ic_m0309.png">
+                                <p class="f_box_txt">논리 물리 통합 모델링</p>
+                                <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            </div>
+                            <div class="f_box">
+                                <img src="https://ko.exerd.com/asset/images/ic_m0301.png">
+                                <p class="f_box_txt">논리 물리 통합 모델링</p>
+                                <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 f_main_box_2">
+                            <p class="maintxt01" style="font-weight:bold; color: #2452c0;text-align:center;">어렵기만 한 운동 자세, 이제 걱정마세요</p>
+                            <p class="maintxt02" style="text-align:center;">카메라를 켜보세요. 당신의 모든 움직임을 인식하고 알려줍니다. </p>
                         </div>
                     </div>
                 </div>
             </body>
-            <footer style="border-top:1px solid #222; margin-top:100px; padding:100px 50px 100px 50px;">
-                <p>전다운</p>
-                <p>Copyright © 1995-2021 Samsung. All Rights Reserved.</p>
+            <footer class="footer-box">
+                <div class="row">
+                    <div class="col-md-12">
+                        <p class="footer-txt2">하이파이프 <i style="font-size:30px; color: #fff;" class="fas fa-running"></i></p>
+                    </div>
+                    <div class="col-md-12">
+                        <p class="footer-txt">전다운, 강민지, 이국진, 전선유</p>
+                    </div>
+                    <p class="f_copy">Copyright © 2021 Pipe Run. All Rights Reserved.</p>
             </footer>
             </html>
             """,
-            height=2700)
+            height=4600)
 
+        # st.image(images/gym.jpg)
 
     @st.cache()
     def image_resize(image, width=None, height=None, inter =cv2.INTER_AREA):
         dim = None
         (h, w) = image.shape[:2]
-        
+
         if width is None and height is None:
             return image
-        
+
         if width is None:
             r = width/float(w)
             dim = (int(w*r), height)
@@ -384,7 +453,7 @@ class App():
             r = width/float(w)
             dim = (width, int(h*r))
 
-        
+
         # resize the image
         resized = cv2.resize(image, dim, interpolation=inter)
 
@@ -442,7 +511,7 @@ class App():
         #     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-kQtW33rZJAHjgefvhyyzcGF3C5TFyBQBA13V1RKPf4uH+bwyzQxZ6CmMZHmNBEfJ" crossorigin="anonymous"></script>
         #     <button type="button" class="btn btn-outline-primary">GAME START</button>""")
 
-        
+
         if st.button("GAME START"):
 
             # Setup pygame/window --------------------------------------------- #
@@ -523,11 +592,11 @@ class App():
         # Layout
         col1, col2 = st.columns(2)
 
-        with col1:    
+        with col1:
             use_webcam = st.button('Use Webcam')
             video_file_buffer = st.file_uploader("Upload a Video", type=['mp4', 'mov', 'avi', 'asf', 'm4v'])
             record = st.checkbox("Record Video")
-            
+
 
         with col2:
             my_expander = st.expander("Settings", expanded=False)
@@ -598,7 +667,7 @@ class App():
 
         st.text("Input Video")
         st.video(tffile.name)
-        
+
         fps = 0
         i = 0
 
@@ -627,7 +696,7 @@ class App():
             min_detection_confidence = detection_confidence,
             min_tracking_confidence = tracking_confidence
             ) as holistic:
-        
+
             prevTime = 0
 
             ########################################################
@@ -652,15 +721,15 @@ class App():
                     # Compute angles between joints
                     v1 = joint[[0,0,1,2,3,4,5,6,7,8,9,10,11,11,12,12,13,14,15,15,15,16,16,16,17,18,19,20,21,22,23,24,25,26,27,27,28,28,29,30,31,32], :3] # Parent joint
                     v2 = joint[[1,4,2,3,7,5,6,8,3,6,0, 0,13,23,14,24,15,16,21,19,17,22,20,18,19,20,15,16,15,16,25,26,27,28,31,29,32,30,31,32,27,28], :3] # Child joint
-                    
+
                     v = v2 - v1 # [20, 3]
                     # Normalize v
                     v = v / np.linalg.norm(v, axis=1)[:, np.newaxis]
 
                     # Get angle using arcos of dot product
                     angle = np.arccos(np.einsum('nt,nt->n',
-                                v[[0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],:], 
-                                v[[1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41],:])) 
+                                v[[0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],:],
+                                v[[1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41],:]))
 
                     angle = np.degrees(angle) / 360 # Convert radian to degree
 
@@ -676,7 +745,7 @@ class App():
                     # Test model on random input data.
                     # input_shape = input_details[0]['shape']
                     # input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
-                    
+
                     # 시퀀스 데이터와 넘파이화
                     input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
                     input_data = np.array(input_data, dtype=np.float32)
@@ -704,36 +773,36 @@ class App():
 
                         if last_action != this_action:
                             last_action = this_action
-                        
+
 
                     # cv2.putText(img, f'{this_action.upper()}', org=(int(result.face_landmarks.landmark[0].x * img.shape[1]), int(result.face_landmarks.landmark[0].y * img.shape[0] + 20)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
                     # 도식의 기준 좌표 생성 (왼쪽 귀)
                     coords = tuple(np.multiply(
                                     np.array(
-                                        (results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].x, 
+                                        (results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].x,
                                             results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].y))
                                 , [640,480]).astype(int))
-                    
+
                     # 사각형 그리기
-                    cv2.rectangle(img, 
+                    cv2.rectangle(img,
                                     # 사각형의 왼쪽 위
-                                    (coords[0], coords[1]+5), 
+                                    (coords[0], coords[1]+5),
                                     # 사각형의 오른쪽 아래
-                                    (coords[0]+len(this_action)*20, coords[1]-30), 
+                                    (coords[0]+len(this_action)*20, coords[1]-30),
                                     (245, 117, 16), -1) # -1 사각형 안을 가득 채운다.
                     # 어떤 액션인지 글자 표시
-                    cv2.putText(img, this_action, coords, 
+                    cv2.putText(img, this_action, coords,
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                    
+
                     # Get status box
                     cv2.rectangle(img, (0,0), (250, 60), (245, 117, 16), -1)
-                    
+
                     # Display Class
                     cv2.putText(img, 'CLASS'
                                 , (95,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                     cv2.putText(img, this_action.split(' ')[0]
                                 , (90,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                    
+
                     # Display Probability
                     cv2.putText(img, 'PROB'
                                 , (15,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
@@ -757,7 +826,7 @@ class App():
                 img = cv2.resize(img, (0,0), fx=0.8, fy=0.8)
                 img = image_resize(image = img, width = 640)
                 stframe.image(img, channels = 'BGR', use_column_width = True)
-                
+
 
             ########################################################
             # End mediapipe opencv logic
@@ -767,7 +836,7 @@ class App():
             # for holistic_landmarks in results.face_landmarks:
             # face_count += 1
 
-            
+
 
                 # kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
             st.subheader('Output Image')
@@ -842,12 +911,12 @@ class App():
             image = np.array(Image.open(img_file_buffer))
 
         else:
-            demo_image = DEMO_IMAGE 
+            demo_image = DEMO_IMAGE
             image = np.array(Image.open(demo_image))
 
         st.text('Original Image')
         st.image(image)
-        
+
         face_count = 0
 
         ##Dashboard
@@ -855,7 +924,7 @@ class App():
             static_image_mode=True,
             min_detection_confidence = detection_confidence
             ) as holistic:
-        
+
             results = holistic.process(image)
             out_image = image.copy()
 
@@ -868,7 +937,7 @@ class App():
             #     landmark_list = results.pose_landmarks,
             #     connections = mp_holistic.POSE_CONNECTIONS,
             #     landmark_drawing_spec = drawing_spec
-            # ) 
+            # )
             if results.pose_landmarks:
                 face_count += 1
                 mp_drawing.draw_landmarks(
@@ -885,7 +954,7 @@ class App():
             st.image(out_image, use_column_width=True)
 
 
-    # @app.addapp(title='Run on Video')
+    @app.addapp(title='Run on Video')
     def run_on_Video():
         global codec, out
 
@@ -916,7 +985,7 @@ class App():
 
         # st.markdown("**Detected Faces, Hands and Pose**")
         # kpi1_text = st.markdown("0")
-        
+
 
 
         max_faces = st.number_input('Maximum Number of Face', value=2, min_value=1)
@@ -956,7 +1025,7 @@ class App():
 
         st.text("Input Video")
         st.video(tffile.name)
-        
+
         fps = 0
         i = 0
 
@@ -985,7 +1054,7 @@ class App():
             min_detection_confidence = detection_confidence,
             min_tracking_confidence = tracking_confidence
             ) as holistic:
-        
+
             prevTime = 0
 
             ########################################################
@@ -1018,7 +1087,7 @@ class App():
                     # landmark_list = results.pose_landmarks,
                     # connections = mp_holistic.POSE_CONNECTIONS,
                     # landmark_drawing_spec = drawing_spec,
-                    # connection_drawing_spec = drawing_spec) 
+                    # connection_drawing_spec = drawing_spec)
 
                 # FPS Counter logic
                 currTime = time.time()
@@ -1045,7 +1114,7 @@ class App():
             # for holistic_landmarks in results.face_landmarks:
             # face_count += 1
 
-            
+
 
                 # kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
             st.subheader('Output Image')
@@ -1053,19 +1122,19 @@ class App():
 
 
 
-    # @app.addapp(title='Music')
+    @app.addapp(title='Music')
     def music():
         with st.beta_expander("Upload MP3, MP4 Files"):
-            st.file_uploader("Select MP3, MP4 Files:", 
+            st.file_uploader("Select MP3, MP4 Files:",
                                         accept_multiple_files=True,
                                         type=['mp3','mp4'])
 
 
-    # @app.addapp(title='Practice')
+    @app.addapp(title='Practice')
     def practice():
 
         def my_widget(key):
-            st.subheader('Hello there!')    
+            st.subheader('Hello there!')
             clicked = st.button("Click me " + key)
             # This works in the main area
         clicked = my_widget("first")

@@ -7,10 +7,10 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import modules.HolisticModule as hm
 detector = hm.HolisticDetector()
 
-cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+# cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
 # video test
-# cap = cv2.VideoCapture("demo/squat_test.mp4")
+cap = cv2.VideoCapture("demo/squat_test.mp4")
 
 count = 0
 dir = 0
@@ -25,31 +25,31 @@ while True:
     pose_lmList = detector.findPoseLandmark(img, draw=False)
     # print(lmList)
     if len(pose_lmList) != 0:
-        if pose_lmList[11][3] > pose_lmList[12][3]:
-            angle = 185 - detector.findAngle(img, 28, 26, 24, draw=True)
-            core_angle = 185 - detector.findAngle(img, 12, 24, 26, draw=True)
-            total_angle = angle + core_angle
+        if pose_lmList[11][1] > pose_lmList[12][1]:
+            left_angle = 185 - detector.findAngle(img, 24, 26, 28, draw=True)
+            left_core_angle = 185 - detector.findAngle(img, 26, 24, 12, draw=True)
 
             x, y = pose_lmList[26][1:3] 
             x_core, y_core = pose_lmList[24][1:3]
 
-            cv2.putText(img, str(int(angle)), (x-60,y+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-            cv2.putText(img, str(int(core_angle)), (x_core-60,y_core+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-        else:
-            angle = 190 - detector.findAngle(img, 23, 25, 27, draw=True)
-            core_angle = 190 - detector.findAngle(img, 25, 23, 11, draw=True)
-            total_angle = angle + core_angle
+            cv2.putText(img, str(int(left_angle)), (x-60,y+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+            cv2.putText(img, str(int(left_core_angle)), (x_core-60,y_core+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+
+            right_angle = 190 - detector.findAngle(img, 27, 25, 23, draw=True)
+            right_core_angle = 190 - detector.findAngle(img, 11, 23, 25, draw=True)
+            
 
             x, y = pose_lmList[25][1:3]
             x_core, y_core = pose_lmList[23][1:3]
 
-            cv2.putText(img, str(int(angle)), (x+40,y+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-            cv2.putText(img, str(int(core_angle)), (x_core+40,y_core+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+            cv2.putText(img, str(int(right_angle)), (x+40,y+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+            cv2.putText(img, str(int(right_core_angle)), (x_core+40,y_core+30), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
 
-        # cv2.putText(img, str(int(total_angle)), (100,100), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+            total_angle = left_angle + left_core_angle + right_angle + right_core_angle
+            # cv2.putText(img, str(int(total_angle)), (100,100), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
 
-        per = np.interp(total_angle, (10, 175), (0, 100))
-        bar = np.interp(total_angle, (10, 175), (450, 100))
+        per = np.interp(total_angle, (10, 300), (0, 100))
+        bar = np.interp(total_angle, (10, 300), (450, 100))
         
         # Check for the curls
         color = (255,0,255)

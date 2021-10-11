@@ -16,7 +16,7 @@ brushThickness = 15
 eraserThickness = 50
 ###################################
 
-folderPath = "examples/Header"
+folderPath = "examples/Header_old"
 myList = os.listdir(folderPath)
 # print(myList)
 
