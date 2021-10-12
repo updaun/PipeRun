@@ -14,17 +14,25 @@ bg_filter = sm.SegmentationFilter()
 # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 
-folderPath = "examples\Header_Angle"
+folderPath = "examples/Header_Angle"
+backgroundfolderPath = "examples/background"
 myList = os.listdir(folderPath)
-# print(myList)
+background_myList = os.listdir(backgroundfolderPath)
+# print(background_myList)
 
 # 덮어씌우는 이미지 리스트
 overlayList =[]
+backgroundList = []
 
 # Header 폴더에 image를 상대경로로 지정
 for imPath in myList:
     image = cv2.imread(f'{folderPath}/{imPath}')
     overlayList.append(image)
+
+for imPath in background_myList:
+    image_path = f'{backgroundfolderPath}/{imPath}'
+    backgroundList.append(image_path)
+# print(backgroundList)
 
 # 비디오 인풋
 cap = cv2.VideoCapture(0)
@@ -61,12 +69,33 @@ dir = 0
 count_text_color = (10,10,10)
 count_backgound_color = (245,245,245)
 
+HP = 100
+cal = 0
+difficulty = 10
 
 while True:
 
     success, img = cap.read()
     img = cv2.flip(img, 1)
     seg = img.copy()
+
+    # 0 15 30 45 60 75 90
+    # 6 5  4  3  2  1  0
+    if HP == 0:
+        bg_image_path = backgroundList[6]
+    elif HP <= 15:
+        bg_image_path = backgroundList[5]
+    elif HP <= 30:
+        bg_image_path = backgroundList[4]
+    elif HP <= 45:
+        bg_image_path = backgroundList[3]
+    elif HP <= 60:
+        bg_image_path = backgroundList[2]
+    elif HP <= 75:
+        bg_image_path = backgroundList[1]
+    else:
+        bg_image_path = backgroundList[0]
+
 
     if bg_image_path != None:
         seg = bg_filter.Image(seg, img_path=bg_image_path)
@@ -94,6 +123,14 @@ while True:
             print("select mode")
 
         if mode == "exercise":
+            HP -= 0.5
+            if HP < 0:
+                HP = 0
+                wording = "Game Over"
+                coords = (125, 330)
+                cv2.rectangle(seg,(coords[0], coords[1]-50), (coords[0]+len(wording)*40, coords[1]+20), (230, 230, 230), -1) 
+                cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 2, (200, 0, 200), 3, cv2.LINE_AA)
+
             if app_mode == "squat":
                 print("squat mode activate")
                 if right_hand_x < left_shoulder_x and right_shoulder_x < left_hand_x:
@@ -158,11 +195,14 @@ while True:
                     if dir == 0:
                         total_count += 0.5
                         dir = 1
+                        HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
                         total_count += 0.5
                         dir = 0
+                        cal += 55
+                        HP += difficulty
 
                 # Draw bar
                 cv2.rectangle(seg, (570, 100), (610, 450), color, 3)
@@ -180,7 +220,7 @@ while True:
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, "100"
+                cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
             elif app_mode == "lunge":
@@ -226,11 +266,14 @@ while True:
                     if dir == 0:
                         total_count += 0.5
                         dir = 1
+                        HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
                         total_count += 0.5
                         dir = 0
+                        cal += 33
+                        HP += difficulty
 
                 # Draw bar
                 cv2.rectangle(seg, (570, 100), (610, 450), color, 3)
@@ -248,7 +291,7 @@ while True:
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, "100"
+                cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
             elif app_mode == "knee up":
@@ -297,11 +340,14 @@ while True:
                     if dir == 0:
                         total_count += 0.5
                         dir = 1
+                        HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
                         total_count += 0.5
                         dir = 0
+                        cal += 33
+                        HP += difficulty
 
                 # Draw bar
                 cv2.rectangle(seg, (570, 100), (610, 450), color, 3)
@@ -319,7 +365,7 @@ while True:
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, "100"
+                cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
             elif app_mode == "side lateral raise":
@@ -359,11 +405,14 @@ while True:
                     if dir == 0:
                         total_count += 0.5
                         dir = 1
+                        HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
                         total_count += 0.5
                         dir = 0
+                        cal += 33
+                        HP += difficulty
 
                 # Draw bar
                 cv2.rectangle(seg, (570, 100), (610, 450), color, 3)
@@ -381,13 +430,19 @@ while True:
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, "100"
+                cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                     
             seg[0:50, 540:640] = header_5
 
 
         elif mode == "select":
+
+            wording = "Total Calories : "
+            coords = (10, 50)
+            cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
+            cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
             header_5 = overlayList[9]
         # Checking for the click
             if x1 < 100:
@@ -479,6 +534,9 @@ while True:
         cTime = time.time()
         fps = 1/(cTime-pTime)
         pTime = cTime
+
+        if HP > 100:
+            HP = 100
         #cv2.putText(img, str(int(fps)), (50,100), cv2.FONT_HERSHEY_PLAIN, 5, (255,0,0), 5)
 
         cv2.imshow("Image", seg)    
@@ -491,6 +549,7 @@ while True:
         coords = (80, 250)
         cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
         cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
 
         cv2.imshow("Image", seg)  
 
