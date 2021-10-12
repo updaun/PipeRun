@@ -56,6 +56,7 @@ header_2 = overlayList[2]
 header_3 = overlayList[4]
 header_4 = overlayList[6]
 header_5 = overlayList[8]
+header = overlayList[10]
 
 total_count = 0
 
@@ -492,13 +493,19 @@ while True:
         elif mode == "select":
 
             wording = "Total Calories : "
-            coords = (10, 50)
+            coords = (130, 120)
             cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
             cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
             header_5 = overlayList[9]
+            
+            # header = cv2.imread('examples\Header\mute.png/mute.png')
+            
         # Checking for the click
             if x1 < 100:
+                if y1<50:
+                    sounds["back"].stop()
+                    break
                 # walking 
                 if 90<=y1<190:
                     print("squat mode")
@@ -583,6 +590,9 @@ while True:
             seg[90:190, 540:640] = header_3
             seg[290:390, 540:640] = header_4
             seg[0:50, 540:640] = header_5
+            seg[0:50, 0:100] = header
+
+            
             
         cTime = time.time()
         fps = 1/(cTime-pTime)
