@@ -29,6 +29,7 @@ class SegmentationFilter():
 
     def Image(self, img, img_path):
         bg_image = cv2.imread(img_path)
+        bg_image = cv2.resize(bg_image, (640, 480))
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB )
         imgRGB.flags.writeable = False
         self.results = self.segmentations.process(imgRGB)
