@@ -40,8 +40,8 @@ class HolisticDetector():
                 #     annotated_image, self.results.left_hand_landmarks, self.mpHolistic.HAND_CONNECTIONS)
                 # self.mpDraw.draw_landmarks(
                 #     annotated_image, self.results.right_hand_landmarks, self.mpHolistic.HAND_CONNECTIONS)
-                # self.mpDraw.draw_landmarks(
-                #     annotated_image, self.results.pose_landmarks, self.mpHolistic.POSE_CONNECTIONS)
+                self.mpDraw.draw_landmarks(
+                    annotated_image, self.results.pose_landmarks, self.mpHolistic.POSE_CONNECTIONS)
 
                 # Plot pose world landmarks.
                 # self.mpDraw.plot_landmarks(
