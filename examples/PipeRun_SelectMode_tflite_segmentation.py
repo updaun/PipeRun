@@ -15,8 +15,8 @@ bg_filter = sm.SegmentationFilter()
 # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 bg_color = (192, 192, 192)
-# bg_image_path = None
-bg_image_path = 'images/_gym.jpg'
+bg_image_path = None
+# bg_image_path = 'images/_gym.jpg'
 
 count_text_color = (10,10,10)
 count_backgound_color = (245,245,245)
@@ -133,7 +133,7 @@ while True:
         input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
         input_data = np.array(input_data, dtype=np.float32)
         
-        if (270<x1<370 and y1 < 50) or (270<x2<370 and y2 < 50):
+        if (540<x1<=640 and y1 < 50) or (540<x2<=640 and y2 < 50):
             mode = "select" 
             print("select mode")
 
@@ -170,7 +170,7 @@ while True:
                     cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
                     cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
             
-            seg[0:50, 270:370] = header_5
+            seg[0:50, 540:640] = header_5
 
 
         elif mode == "select":
@@ -261,7 +261,7 @@ while True:
             seg[290:390, 0:100] = header_2
             seg[90:190, 540:640] = header_3
             seg[290:390, 540:640] = header_4
-            seg[0:50, 270:370] = header_5
+            seg[0:50, 540:640] = header_5
             
                 
         
