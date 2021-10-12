@@ -2,3 +2,6 @@ dataset
 output1.mp4
 __pycache__
 demo
+audio.mp3
+pitchdata.csv
+video.mp4

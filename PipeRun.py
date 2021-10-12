@@ -282,7 +282,7 @@ def home():
 
 ############################################################################################################################################################
 
-@app.addapp(title='About App')
+# @app.addapp(title='About App')
 def about_App():
     st.markdown('In this Application we are using **Mediapipe** for creating a Holistic App. **Streamlit** is to create the Web Graphical User Interface (GUI)')
 
@@ -313,7 +313,7 @@ def about_App():
     ''')
 
 ############################################################################################################################################################
-@app.addapp(title='Running Detection')
+# @app.addapp(title='Running Detection')
 def running_Detection():
     global last_action
 
@@ -667,7 +667,7 @@ def run_on_Image():
         st.image(out_image, use_column_width=True)
 
 
-@app.addapp(title='Run on Video')
+# @app.addapp(title='Run on Video')
 def run_on_Video():
     global codec, out
 
@@ -1279,7 +1279,7 @@ def piperun_selectmode_tflite_mod():
                 cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
                 cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
-                cv2.imshow("Image", seg)  
+                # cv2.imshow("Image", seg)  
 
             seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
             seg = image_resize(image = seg, width = 900)
@@ -2410,7 +2410,7 @@ def pipe_run_challenger():
                 cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
                 cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
-                cv2.imshow("Image", seg)  
+                # cv2.imshow("Image", seg)  
 
             seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
             seg = image_resize(image = seg, width = 900)
@@ -2487,11 +2487,11 @@ def clicker():
 
         df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
 
-        df.to_csv("pitchdata.csv")
+        df.to_csv("media/pitchdata.csv")
 
 
 
-        sound = pd.read_csv("pitchdata.csv", index_col=0)
+        sound = pd.read_csv("media/pitchdata.csv", index_col=0)
         #
         df = sound['F0(pitch)']
         sound['times'] = sound['times'].astype(int)
