@@ -4,6 +4,7 @@ import numpy as np
 import os
 import sys
 import time
+import pygame
 
 import modules.HolisticModule as hm
 import modules.SegmentationModule as sm
@@ -73,6 +74,36 @@ HP = 100
 cal = 0
 difficulty = 10
 
+
+sound_control_count = 0
+
+# sound
+sounds = {}  # 빈 딕셔너리 생성
+pygame.mixer.init()
+sounds["pose_ok"] = pygame.mixer.Sound("examples\Assets\Sounds\pose_ok.wav")  # 재생할 파일 설정
+sounds["pose_ok"].set_volume(0.5)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["get_score"] = pygame.mixer.Sound("examples\Assets\Sounds\get_score.wav")  # 재생할 파일 설정
+sounds["get_score"].set_volume(0.5)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["click"] = pygame.mixer.Sound("examples\Assets\Sounds\click.wav")  # 재생할 파일 설정
+sounds["click"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["back"] = pygame.mixer.Sound("examples/Assets/Sounds/back.wav")  # 재생할 파일 설정
+sounds["back"].set_volume(0.1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["back"].play()
+
+
+sounds["g1"] = pygame.mixer.Sound("examples\Assets\Sounds\g1.wav")  # 재생할 파일 설정
+sounds["g1"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["g2"] = pygame.mixer.Sound("examples\Assets\Sounds\g2.wav")  # 재생할 파일 설정
+sounds["g2"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["g3"] = pygame.mixer.Sound("examples\Assets\Sounds\g3.wav")  # 재생할 파일 설정
+sounds["g3"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["g4"] = pygame.mixer.Sound("examples\Assets\Sounds\g4.wav")  # 재생할 파일 설정
+sounds["g4"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["g5"] = pygame.mixer.Sound("examples\Assets\Sounds\g5.wav")  # 재생할 파일 설정
+sounds["g5"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+sounds["g6"] = pygame.mixer.Sound("examples\Assets\Sounds\g6.wav")  # 재생할 파일 설정
+sounds["g6"].set_volume(0.5)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+
 while True:
 
     success, img = cap.read()
@@ -83,16 +114,29 @@ while True:
     # 6 5  4  3  2  1  0
     if HP == 0:
         bg_image_path = backgroundList[6]
-    elif HP <= 15:
+    elif HP == 1:
+        sounds["g5"].play()
+    elif HP < 15:
         bg_image_path = backgroundList[5]
-    elif HP <= 30:
+    elif HP == 15:
+        sounds["g4"].play()
+    elif HP < 30:
         bg_image_path = backgroundList[4]
-    elif HP <= 45:
+    elif HP == 30:
+        sounds["g3"].play()
+    elif HP < 45:
         bg_image_path = backgroundList[3]
-    elif HP <= 60:
+    elif HP == 45:        
+        sounds["g2"].play()
+    elif HP < 60:
         bg_image_path = backgroundList[2]
-    elif HP <= 75:
+    elif HP == 60: 
+        sounds["g1"].play()
+    elif HP < 75:
         bg_image_path = backgroundList[1]
+    elif HP == 75:
+        print("test")
+        sounds["g6"].play()
     else:
         bg_image_path = backgroundList[0]
 
@@ -120,12 +164,13 @@ while True:
         
         if (540<x1<=640 and y1 < 50) or (540<x2<=640 and y2 < 50):
             mode = "select" 
+            # sounds["click"].play()
             print("select mode")
 
         if mode == "exercise":
             HP -= 0.5
             if HP < 0:
-                HP = 0
+                HP = 0 
                 wording = "Game Over"
                 coords = (125, 330)
                 cv2.rectangle(seg,(coords[0], coords[1]-50), (coords[0]+len(wording)*40, coords[1]+20), (230, 230, 230), -1) 
@@ -193,12 +238,14 @@ while True:
                 if per == 100:
                     color = (0,200,0)        
                     if dir == 0:
+                        sounds["pose_ok"].play()
                         total_count += 0.5
                         dir = 1
                         HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
+                        sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
                         cal += 55
@@ -264,12 +311,14 @@ while True:
                 if per == 100:
                     color = (0,200,0)        
                     if dir == 0:
+                        sounds["pose_ok"].play()
                         total_count += 0.5
                         dir = 1
                         HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
+                        sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
                         cal += 33
@@ -338,12 +387,14 @@ while True:
                 if per == 100:
                     color = (0,200,0)        
                     if dir == 0:
+                        sounds["pose_ok"].play()
                         total_count += 0.5
                         dir = 1
                         HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
+                        sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
                         cal += 33
@@ -403,12 +454,14 @@ while True:
                 if per == 100:
                     color = (0,200,0)        
                     if dir == 0:
+                        sounds["pose_ok"].play()
                         total_count += 0.5
                         dir = 1
                         HP += difficulty
                 if per == 0:
                     color = (0,200,0)        
                     if dir == 1:
+                        sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
                         cal += 33
