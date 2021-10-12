@@ -6,10 +6,10 @@ import mediapipe as mp
 import numpy as np
 from tensorflow.keras.models import load_model
 
-actions = ['walk', 'stop']
+actions = ['airrope', 'stop']
 seq_length = 30
 
-model = load_model('models/walking_modelss.h5')
+model = load_model('models/airrope_modelss.h5')
 
 # MediaPipe hands model
 mp_holistic = mp.solutions.holistic
