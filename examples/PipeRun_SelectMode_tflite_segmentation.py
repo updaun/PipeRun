@@ -64,7 +64,7 @@ actions = ['fit', 'stop']
 seq_length = 30
 
 # default mode
-mode = "exercise"
+mode = "select"
 app_mode = "running"
 wording = ""
 
@@ -91,6 +91,8 @@ sounds = {}  # 빈 딕셔너리 생성
 pygame.mixer.init()
 sounds["alaram"] = pygame.mixer.Sound("./examples/Assets/Sounds/alaram_audio.mp3")  # 재생할 파일 설정
 sounds["alaram"].set_volume(1)
+
+i_pred = 1
 
 while True:
 
