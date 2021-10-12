@@ -6,14 +6,15 @@ import mediapipe as mp
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+import math
 
-actions = ['stop', 'walk']
+actions = ['walk', 'stop']
 seq_length = 30
 
 # model = load_model('models/model.h5')
 
 # Load TFLite model and allocate tensors.
-interpreter = tf.lite.Interpreter(model_path="models/walking_model.tflite")
+interpreter = tf.lite.Interpreter(model_path="models/walking_modelss.tflite")
 interpreter.allocate_tensors()
 
 # Get input and output tensors.
@@ -32,6 +33,7 @@ cap = cv2.VideoCapture(0)
 seq = []
 action_seq = []
 last_action = None
+HP = 100
 
 while cap.isOpened():
     ret, img = cap.read()
@@ -139,6 +141,26 @@ while cap.isOpened():
                     , (15,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
         cv2.putText(img, str(round(y_pred[0][np.argmax(y_pred[0])],2))
                     , (10,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+        # # 초기 HP 100 설정
+        # cv2.putText(img, 'My HP: ' + str(math.floor(HP)), (10, 200), cv2.FONT_HERSHEY_DUPLEX, 1
+        #            , (255, 0, 0), 1, cv2.LINE_AA)
+        
+        
+        # # 운동해서 인식률이 생기면 체력 회복
+        # if this_action.split(' ')[0] == 'walk' and y_pred[0][np.argmax(y_pred[0])] >= 0.5:
+        #     HP += 0.015
+        #     cv2.putText(img, 'exercising', (10, 250), cv2.FONT_HERSHEY_DUPLEX, 1
+        #            , (255, 0, 0), 1, cv2.LINE_AA)
+        #     if HP >= 100: # 최대값
+        #         HP = 100
+
+        # # 운동 인식 안되면 자연 감소
+        # HP -= 0.01
+
+        # # 최소값
+        # if HP < 0:
+        #     HP = 0    
 
 
     cv2.imshow('img', img)

@@ -4,12 +4,22 @@ import sys
 import cv2
 import mediapipe as mp
 import numpy as np
+import tensorflow as tf
 from tensorflow.keras.models import load_model
+import math
 
-actions = ['walk', 'stop']
+actions = ['jump', 'stop']
 seq_length = 30
 
-model = load_model('models/walking_modelss.h5')
+# model = load_model('models/model.h5')
+
+# Load TFLite model and allocate tensors.
+interpreter = tf.lite.Interpreter(model_path="models/jumping_modelss.tflite")
+interpreter.allocate_tensors()
+
+# Get input and output tensors.
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # MediaPipe hands model
 mp_holistic = mp.solutions.holistic
@@ -23,6 +33,7 @@ cap = cv2.VideoCapture(0)
 seq = []
 action_seq = []
 last_action = None
+HP = 100
 
 while cap.isOpened():
     ret, img = cap.read()
@@ -64,15 +75,24 @@ while cap.isOpened():
         if len(seq) < seq_length:
             continue
 
+        # Test model on random input data.
+        # input_shape = input_details[0]['shape']
+        # input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
+        
+        # 시퀀스 데이터와 넘파이화
         input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
+        input_data = np.array(input_data, dtype=np.float32)
 
-        y_pred = model.predict(input_data).squeeze()
+        # tflite 모델을 활용한 예측
+        interpreter.set_tensor(input_details[0]['index'], input_data)
+        interpreter.invoke()
 
-        i_pred = int(np.argmax(y_pred))
-        conf = y_pred[i_pred]
+        y_pred = interpreter.get_tensor(output_details[0]['index'])
+        i_pred = int(np.argmax(y_pred[0]))
+        # conf = y_pred[i_pred]
 
-        if conf < 0.6:
-            continue
+        # if conf < 0.9:
+        #     continue
 
         action = actions[i_pred]
         action_seq.append(action)
@@ -89,17 +109,21 @@ while cap.isOpened():
             
 
         # cv2.putText(img, f'{this_action.upper()}', org=(int(result.face_landmarks.landmark[0].x * img.shape[1]), int(result.face_landmarks.landmark[0].y * img.shape[0] + 20)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
-        # Grab ear coords
+        # 도식의 기준 좌표 생성 (왼쪽 귀)
         coords = tuple(np.multiply(
                         np.array(
                             (result.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].x, 
                                 result.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].y))
                     , [640,480]).astype(int))
         
+        # 사각형 그리기
         cv2.rectangle(img, 
+                        # 사각형의 왼쪽 위
                         (coords[0], coords[1]+5), 
+                        # 사각형의 오른쪽 아래
                         (coords[0]+len(this_action)*20, coords[1]-30), 
-                        (245, 117, 16), -1)
+                        (245, 117, 16), -1) # -1 사각형 안을 가득 채운다.
+        # 어떤 액션인지 글자 표시
         cv2.putText(img, this_action, coords, 
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
         
@@ -115,8 +139,28 @@ while cap.isOpened():
         # Display Probability
         cv2.putText(img, 'PROB'
                     , (15,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(img, str(round(y_pred[np.argmax(y_pred)],2))
+        cv2.putText(img, str(round(y_pred[0][np.argmax(y_pred[0])],2))
                     , (10,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+        # # 초기 HP 100 설정
+        # cv2.putText(img, 'My HP: ' + str(math.floor(HP)), (10, 200), cv2.FONT_HERSHEY_DUPLEX, 1
+        #            , (255, 0, 0), 1, cv2.LINE_AA)
+        
+        
+        # # 운동해서 인식률이 생기면 체력 회복
+        # if this_action.split(' ')[0] == 'walk' and y_pred[0][np.argmax(y_pred[0])] >= 0.5:
+        #     HP += 0.015
+        #     cv2.putText(img, 'exercising', (10, 250), cv2.FONT_HERSHEY_DUPLEX, 1
+        #            , (255, 0, 0), 1, cv2.LINE_AA)
+        #     if HP >= 100: # 최대값
+        #         HP = 100
+
+        # # 운동 인식 안되면 자연 감소
+        # HP -= 0.01
+
+        # # 최소값
+        # if HP < 0:
+        #     HP = 0    
 
 
     cv2.imshow('img', img)

@@ -8,6 +8,7 @@ import tensorflow as tf
 
 import modules.HolisticModule as hm
 import modules.SegmentationModule as sm
+import pygame
 
 detector = hm.HolisticDetector()
 bg_filter = sm.SegmentationFilter()
@@ -15,20 +16,20 @@ bg_filter = sm.SegmentationFilter()
 # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 
 bg_color = (192, 192, 192)
+#bg_image_path = 'images/bg_night.jpg'
 bg_image_path = None
-# bg_image_path = 'images/_gym.jpg'
 
 count_text_color = (10,10,10)
 count_backgound_color = (245,245,245)
 
 # Load TFLite model and allocate tensors.
-interpreter_1 = tf.lite.Interpreter(model_path="models/walking_model.tflite")
+interpreter_1 = tf.lite.Interpreter(model_path="models/walking_modelss.tflite")
 interpreter_1.allocate_tensors()
-interpreter_2 = tf.lite.Interpreter(model_path="models/running_model.tflite")
+interpreter_2 = tf.lite.Interpreter(model_path="models/running_modelss.tflite")
 interpreter_2.allocate_tensors()
-interpreter_3 = tf.lite.Interpreter(model_path="models/jumping_model.tflite")
+interpreter_3 = tf.lite.Interpreter(model_path="models/jumping_modelss.tflite")
 interpreter_3.allocate_tensors()
-interpreter_4 = tf.lite.Interpreter(model_path="models/airrope_model.tflite")
+interpreter_4 = tf.lite.Interpreter(model_path="models/airrope_modelss.tflite")
 interpreter_4.allocate_tensors()
 
 # Get input and output tensors.
@@ -49,7 +50,6 @@ for imPath in myList:
 # print(len(overlayList))
 
 
-
 # 비디오 인풋
 cap = cv2.VideoCapture(0)
 
@@ -65,9 +65,10 @@ seq_length = 30
 
 # default mode
 mode = "exercise"
-app_mode = "walking"
+app_mode = "running"
+wording = ""
 
-header_1 = overlayList[1]
+header_1 = overlayList[0]
 header_2 = overlayList[2]
 header_3 = overlayList[4]
 header_4 = overlayList[6]
@@ -77,6 +78,19 @@ running_select_count = 0
 walking_select_count = 0
 jumping_select_count = 0
 airrope_select_count = 0
+
+# HP, kcal 초기 값
+my_HP = 100 
+total_cal = 0
+run_cal = 0
+walk_cal = 0
+jump_cal = 0
+rope_cal = 0
+
+sounds = {}  # 빈 딕셔너리 생성
+pygame.mixer.init()
+sounds["alaram"] = pygame.mixer.Sound("./examples/Assets/Sounds/alaram_audio.mp3")  # 재생할 파일 설정
+sounds["alaram"].set_volume(1)
 
 while True:
 
@@ -300,22 +314,69 @@ while True:
         
         # Get status box
         # cv2.rectangle(seg, (0,0), (170, 60), (245, 117, 16), -1)
-        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
         
         # Display Class
         cv2.putText(seg, 'ACTION'
-                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                    , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
         cv2.putText(seg, this_action.split(' ')[0]
-                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
         
         # Display Probability
-        cv2.putText(seg, 'SCORE'
-                    , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(seg, str(round(y_pred[0][np.argmax(y_pred[0])],2))
-                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        # cv2.putText(seg, 'SCORE'
+        #             , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        # cv2.putText(seg, str(round(y_pred[0][np.argmax(y_pred[0])],2))
+        #             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
+
+        # HP 계산 => 1분(1200프레임) stop 상태면 게임오버
+        if mode != 'select' and wording != 'Please Show Your Feet':
+            my_HP -= 0.1 #자동감소
+
+            if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                my_HP += 0.18
+    
+                if my_HP > 100:
+                    my_HP = 100
+
+        # 경고음 소리
+        if 25 <= my_HP <= 35 or 65 <= my_HP <= 75:
+            sounds["alaram"].play()
+
+        if my_HP <= 0:
+            wording = "GO! RUN! GO! RUN!"
+            coords = (160, 250)
+            cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
+            cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+            my_HP = 0
+
+        cv2.putText(seg, 'HP'
+                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        cv2.putText(seg, str(round(my_HP, 1))
+                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+        # 칼로리 계산 => fit 프레임 갯수로 계산하기
+        # total = run + walk + jump + rope 
+        if mode != 'select' and wording != 'Please Show Your Feet':
+            if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                if app_mode == 'walking':
+                    walk_cal += 4.0
+                elif app_mode == 'running':
+                    run_cal += 8.0
+                elif app_mode == 'jumping':
+                    jump_cal += 5.5
+                elif app_mode == 'air rope':
+                    rope_cal += 5.5    
+        
+        total_cal = walk_cal + run_cal + jump_cal + rope_cal
+
+        cv2.putText(seg, 'cal'
+                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+        cv2.putText(seg, str(total_cal)
+                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+        
         cv2.imshow("Image", seg)
-
 
     if cv2.waitKey(1) & 0xFF == 27:
         break
@@ -327,6 +388,8 @@ while True:
         cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
         cv2.imshow("Image", seg)  
+
+
 
 cv2.destroyAllWindows()
 
