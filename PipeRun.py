@@ -1,4 +1,5 @@
 from re import T
+from google.protobuf.symbol_database import Default
 from mediapipe.python.solutions.face_mesh import FACE_CONNECTIONS
 from numpy.core.fromnumeric import size
 import streamlit as st
@@ -191,13 +192,14 @@ def home():
                 <div class="row " style="margin-bottom:100px; margin-top:100px;">
                     <div class="col-md-6 col-xs-12" >
                         <span class="maintxt01">AI와 함께하는 <strong class="bluepoint">헬스케어 </strong></span>
-                        <p class="maintxt02"> 인공신경망으로 정확한 운동 자세를 학습한 AI가 당신과 함께 합니다.<br>
-                        카메라를 켜보세요. <strong class="blue"> 당신의 모든 움직임</strong>을 인식하고 알려줍니다. <br>
-                        이제 당신이 학습할 차례입니다! </p>
+                        <p class="maintxt02"> 인공신경망으로 운동 자세를 학습한 AI가<br>당신과 함께 합니다.<br><br>
+                        <strong class="blue"> 당신의 움직임</strong>을 인식하고 운동량을 알려줍니다. <br>
+                        다양한 동작이 인식 가능한 런닝머신을 즐겨보세요!<br><br>
+                        <strong class="blue"><strong class="bluepoint">Hi PipeRunner</strong></strong></p>
 
                     </div>
                     <div class="col-md-6 col-xs-12">
-                        <img src="https://images.pexels.com/photos/6707079/pexels-photo-6707079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500" class="w-100">
+                        <img src="https://images.pexels.com/photos/8033089/pexels-photo-8033089.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=210&w=500" class="w-100">
                     </div>
                 </div>
 
@@ -205,15 +207,16 @@ def home():
 
                 <div class="row">
                     <div class="col-md-6 col-xs-12">
-                        <img src="https://images.pexels.com/photos/4498366/pexels-photo-4498366.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500" class="w-100">
+                        <img src="https://images.pexels.com/photos/8173441/pexels-photo-8173441.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500" class="w-100">
                     </div>
                     <div class="col-md-6 col-xs-12">
-                        <span class="maintxt01">리듬 타고 싶은 <strong class="bluepoint">멜로디</strong>가 있나요?</span>
-                        <p class="maintxt02">좋아하는 노래, TOP100, 지루한 인터넷 강의?<br>
-                            소리만 있으면 무엇이든 가능합니다.<br>
-                            일단 올려주세요!<br>
-                            그리고 <strong class="blue">리듬에 몸을 맡기고 움직이면 됩니다.</strong>
-                        </p>
+                        <span class="maintxt01"> 힘든 동작을 <strong class="bluepoint">재미있게!</strong></span>
+                        <p class="maintxt02"> 쉽게 포기 쉬운 홈트레이닝? <strong class="bluepoint">No!</strong><br>
+                        포기하지 않고 운동할 수 있도록 도와줘요. <br><br>
+                        운동을 하지 않으면 귀여운 귀신 친구들이 등장해요!<br>
+                        <strong class="blue">어서 움직여서 도망쳐야 해요!</strong> <br><br>
+                        <strong class="blue"><strong class="bluepoint">Hi Challenger</strong></strong></p>
+                        
 
                     </div>
 
@@ -221,12 +224,17 @@ def home():
                 
                 <div class="row " style="margin-bottom:100px; margin-top:100px;">
                     <div class="col-md-6 col-xs-12" >
-                        <span class="maintxt01"> 어디서든 <strong class="bluepoint">활력있게!</strong></span>
-                        <p class="maintxt02"> 실내에서 가만히 있기 힘드셨죠? <br>
-                        즐겁고 꾸준하게 운동해요.</p>
+                        <span class="maintxt01">리듬 타고 싶은 <strong class="bluepoint">멜로디</strong>가 있나요?</span>
+                        <p class="maintxt02">좋아하는 노래에 맞춰 <strong class="bluepoint">Click!</strong><br>
+                            신나는 노래에 맞춰 <strong class="bluepoint">Click!</strong><br><br>
+                            
+                            모양에 맞춰 터치 패널을 <strong class="bluepoint">Click!</strong> 하면 점수가 올라가요!<br>
+                            <strong class="blue">리듬에 몸을 맡기고 움직이면 됩니다.<br><br>
+                            
+                            <strong class="bluepoint">Hi Clicker</strong></strong>
                     </div>
                     <div class="col-md-6 col-xs-12">
-                        <img src="https://images.pexels.com/photos/6707079/pexels-photo-6707079.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500" class="w-100">
+                        <img src="https://images.pexels.com/photos/4498366/pexels-photo-4498366.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=210&w=500" class="w-100">
                     </div>
                 </div>
 
@@ -236,28 +244,28 @@ def home():
                         <div class="col-md-12 text-center">
                             <p class="main-tit">Service</p>
                         </div>
-
-                        <div class="f_box" style="margin-left:200px;">
+                        <div class="f_box" style="margin-left:100px;">
+                            <img src="https://ko.exerd.com/asset/images/ic_m0305.png">
+                            <p class="f_box_txt">LSTM 인공지능 모델링</p>
+                            <p class="f_box_txt_2">제자리 걷기 및 제자리 달리기 등 동적 동작 인식</p>
+                        </div>
+                        <div class="f_box">
                             <img src="https://ko.exerd.com/asset/images/ic_m0301.png">
-                            <p class="f_box_txt">논리 물리 통합 모델링</p>
-                            <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            <p class="f_box_txt">운동량 그래프 시각화</p>
+                            <p class="f_box_txt_2">소모된 칼로리 정보를 그래프로 시각화하여 제공</p>
                         </div>
                         <div class="f_box">
                             <img src="https://ko.exerd.com/asset/images/ic_m0304.png">
-                            <p class="f_box_txt">논리 물리 통합 모델링</p>
-                            <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
+                            <p class="f_box_txt">유튜브 음원과 연동</p>
+                            <p class="f_box_txt_2">음높이에 따른 터치 패널 생성과 흥미 제공</p>
                         </div>
-                        <div class="f_box">
-                            <img src="https://ko.exerd.com/asset/images/ic_m0309.png">
-                            <p class="f_box_txt">논리 물리 통합 모델링</p>
-                            <p class="f_box_txt_2">논리와 물리 모델링을 동시 보면서 편집가능</p>
-                        </div>
+                        
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-12 f_main_box_2">
-                        <p class="maintxt01" style="font-weight:bold; color: #2452c0;text-align:center;">어렵기만 한 운동 자세, 이제 걱정마세요</p>
-                        <p class="maintxt02" style="text-align:center;">카메라를 켜보세요. 당신의 모든 움직임을 인식하고 알려줍니다. </p>
+                        <p class="maintxt01" style="font-weight:bold; color: #2452c0;text-align:center;">지루한 홈 트레이닝, 이제 파이프런과 함께하세요</p>
+                        <p class="maintxt02" style="text-align:center;">카메라를 켜보세요. 재밌고 신나게 AI 홈트레이닝 게임을 즐겨보세요. </p>
                     </div>
                 </div>
             </div>
@@ -274,7 +282,7 @@ def home():
         </footer>
         </html>
         """,
-        height=4600)
+        height=3680)
 
     # st.image(images/gym.jpg)
 
@@ -863,8 +871,30 @@ def music():
 @app.addapp(title='Hi PipeRunner')
 def piperun_selectmode_tflite_mod():
 
-    use_webcam = st.button('Use Webcam')
-    record = st.checkbox("Record Video")
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    m = st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        font-size: 25px;
+        background-color: #0099ff;
+        color:#ffffff;
+    }
+    div.stButton > button:hover {
+        font-size: 25px;
+        background-color: #00aa00;
+        color:#ffffff;
+        }
+    </style>""", unsafe_allow_html=True)
+
+    use_webcam = st.button('Run Hi PipeRunner!')
+    # record = st.checkbox("Record Video")
 
     col1, col2, col3 = st.columns([1, 4, 1])
     with col1:
@@ -1265,8 +1295,8 @@ def piperun_selectmode_tflite_mod():
                 fps = 1 / (currTime - prevTime)
                 prevTime = currTime
 
-                if record:
-                    out.write(seg)
+                # if record:
+                #     out.write(seg)
 
 
                 # seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
@@ -1287,11 +1317,20 @@ def piperun_selectmode_tflite_mod():
 
 # @app.addapp(title='Hi Challenger')
 def piperun_selectmode_angle():
+
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
     detector = hm.HolisticDetector()
     bg_filter = sm.SegmentationFilter()
     
-    use_webcam = st.button('Use Webcam')
-    record = st.checkbox("Record Video")
+    use_webcam = st.button('Run Hi Challenger!')
+    # record = st.checkbox("Record Video")
 
 
     col1, col2, col3 = st.columns([1, 4, 1])
@@ -1760,8 +1799,8 @@ def piperun_selectmode_angle():
                 fps = 1 / (currTime - prevTime)
                 prevTime = currTime
 
-                if record:
-                    out.write(seg)
+                # if record:
+                #     out.write(seg)
 
                 seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
                 seg = image_resize(image = seg, width = 900)
@@ -1774,8 +1813,30 @@ def piperun_selectmode_angle():
 @app.addapp(title='Hi Challenger')
 def pipe_run_challenger():
     
-    use_webcam = st.button('Use Webcam')
-    record = st.checkbox("Record Video")
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    m = st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        font-size: 25px;
+        background-color: #ff99ff;
+        color:#000000;
+    }
+    div.stButton > button:hover {
+        font-size: 25px;
+        background-color: #00aa00;
+        color:#ffffff;
+        }
+    </style>""", unsafe_allow_html=True)
+
+    use_webcam = st.button('Run Hi Challenger!')
+    # record = st.checkbox("Record Video")
 
     folderPath = "examples\Header"
     header = cv2.imread(f'{folderPath}/mute.png')
@@ -2401,8 +2462,8 @@ def pipe_run_challenger():
                 if HP > 100:
                     HP = 100
 
-                if record:
-                    out.write(seg)
+                # if record:
+                #     out.write(seg)
 
             else:
                 wording = "Please Appear On The Screen"
@@ -2421,11 +2482,20 @@ def pipe_run_challenger():
 
 @app.addapp(title='Hi Clicker')
 def clicker():
+
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
     global score, x_enemy, y_enemy, count
     
     # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
     
-    record = st.checkbox("Record Video")
+    # record = st.checkbox("Record Video")
 
     folderPath = "examples\Header"
 
@@ -2439,59 +2509,61 @@ def clicker():
     with col3:
         st.write('')
 
-
-    yt_url = st.text_input('유튜브 링크를 붙여 넣어주세요')
+    yt_url = st.text_input('유튜브 [공유 링크] 를 붙여 넣어주세요.')
+    st.text("데모를 시행시키려면 'demo'를 입력하세요.")
 
     # if use_webcam:
 
     if yt_url:
-        vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-    
-        width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
-        height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-        fps_input = int(vid.get(cv2.CAP_PROP_FPS))
+        if yt_url == "demo":
+            audio_file_path = "media/demo/audio.mp3"
+            data_file_path = "media/demo/pitchdata.csv"
+        else:
+            # 유튜브 링크 입력으로 다운받아오는 부분
+            video_download_path = './media/video'
+            audio_download_path = './media/audio'
+            data_download_path = './media/data'
 
-        # 유튜브 링크 입력으로 다운받아오는 부분
-        download_path = './media'
+            if not os.path.exists(video_download_path):
+                os.makedirs(video_download_path)
 
-        if not os.path.exists(download_path):
-            os.makedirs(download_path)
+            video = YouTube(yt_url)
+            video_type = video.streams.filter(progressive = True, file_extension = "mp4").get_highest_resolution()
+            video_type.download(video_download_path)
 
-        video = YouTube(yt_url)
-        video_type = video.streams.filter(progressive = True, file_extension = "mp4").get_highest_resolution()
-        video_type.download('./media/')
+            # 다운받은 비디오의 이름을 video.mp4로 바꾸기 -> 이러면 노래 하나만 있어야한다는 문제점.
+            file_list = os.listdir(video_download_path)
+            file_position = len(file_list)+1
+            old_name = os.path.join(video_download_path, file_list[-1])
+            new_name = os.path.join(video_download_path, f"{file_position}.mp4")
 
-        # 다운받은 비디오의 이름을 video.mp4로 바꾸기 -> 이러면 노래 하나만 있어야한다는 문제점.
-        file_list = os.listdir(download_path)
-        old_name = os.path.join(download_path, file_list[0])
-        new_name = os.path.join(download_path, "video.mp4")
+            os.rename(old_name, new_name)
 
-        os.rename(old_name, new_name)
+            # mp4를 mp3 로 전환
+            clip = mv.VideoFileClip(video_download_path + f"/{file_position}.mp4")
+            clip.audio.write_audiofile(audio_download_path + f"/{file_position}.mp3")
 
-        # mp4를 mp3 로 전환
-        clip = mv.VideoFileClip("media/video.mp4")
-        clip.audio.write_audiofile("media/audio.mp3")
+            audio_file_path = audio_download_path + f"/{file_position}.mp3"
 
-        audio_file_path = "media/audio.mp3"
-        #ㅈ
-        Sound = parselmouth.Sound(audio_file_path)
+            Sound = parselmouth.Sound(audio_file_path)
 
-        # 1초단위로
-        formant = Sound.to_formant_burg(time_step=1)
-        # Pitch값 추출
-        pitch = Sound.to_pitch()
-        df = pd.DataFrame({"times": formant.ts()})
+            # 1초단위로
+            formant = Sound.to_formant_burg(time_step=1)
+            # Pitch값 추출
+            pitch = Sound.to_pitch()
+            df = pd.DataFrame({"times": formant.ts()})
 
-        times =[]
-        times.append(formant.ts())
+            times =[]
+            times.append(formant.ts())
 
-        df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
+            df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
 
-        df.to_csv("media/pitchdata.csv")
-
+            data_file_path = data_download_path + f"/{file_position}.csv"
+            df.to_csv(data_file_path)
 
 
-        sound = pd.read_csv("media/pitchdata.csv", index_col=0)
+
+        sound = pd.read_csv(data_file_path , index_col=0)
         #
         df = sound['F0(pitch)']
         sound['times'] = sound['times'].astype(int)
@@ -2499,13 +2571,6 @@ def clicker():
         normal_df =(df-df.min())/(df.max()-df.min())
         pitch = normal_df.fillna(2)
         sound['F0(pitch)'] = pitch
-        # pitch_val = pitch.values.tolist()
-        # if sound['F0(pitch)'] <= 0.3:
-        #     pass
-        # elif sound['F0(pitch)'] <= 0.7:
-        #     pass
-        # elif sound['F0(pitch)'] <= 1.0:
-        #     pass
 
         mpDraw = mp.solutions.drawing_utils
         mpHands = mp.solutions.hands
@@ -2518,12 +2583,11 @@ def clicker():
         sounds["slap"].set_volume(1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["screaming"] = pygame.mixer.Sound("examples\Assets\Sounds\Effect.wav")  # 재생할 파일 설정
         sounds["screaming"].set_volume(1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
-        sounds["song"] = pygame.mixer.Sound("media/audio.mp3")  # 재생할 파일 설정
+        sounds["song"] = pygame.mixer.Sound(audio_file_path)  # 재생할 파일 설정
         sounds["song"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         
 
         # class 객체 생성
-        detector = hm.HolisticDetector()
         movedetector = pm.poseDetector()
 
         score = 0
@@ -2595,6 +2659,12 @@ def clicker():
         ########################################################
         # mediapipe opencv logic
         ########################################################
+        vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+
+        width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        fps_input = int(vid.get(cv2.CAP_PROP_FPS))
+
         while vid.isOpened():
             ret, img = vid.read()
             if not ret:
@@ -2837,8 +2907,8 @@ def clicker():
                 fps = 1 / (currTime - prevTime)
                 prevTime = currTime
 
-                if record:
-                    out.write(image)
+                # if record:
+                #     out.write(image)
                                         
                 image = cv2.resize(image, (0,0), fx=0.8, fy=0.8)
                 image = image_resize(image = image, width = 900)

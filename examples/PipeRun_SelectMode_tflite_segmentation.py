@@ -25,7 +25,7 @@ count_backgound_color = (245,245,245)
 # Load TFLite model and allocate tensors.
 interpreter_1 = tf.lite.Interpreter(model_path="models/walking_modelss.tflite")
 interpreter_1.allocate_tensors()
-interpreter_2 = tf.lite.Interpreter(model_path="models/running_modelss.tflite")
+interpreter_2 = tf.lite.Interpreter(model_path="models/running_model_jdu.tflite")
 interpreter_2.allocate_tensors()
 interpreter_3 = tf.lite.Interpreter(model_path="models/jumping_modelss.tflite")
 interpreter_3.allocate_tensors()
@@ -51,7 +51,8 @@ for imPath in myList:
 
 
 # 비디오 인풋
-cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("demo/running.mp4")
 
 
 detector = hm.HolisticDetector()
@@ -64,7 +65,7 @@ actions = ['fit', 'stop']
 seq_length = 30
 
 # default mode
-mode = "select"
+mode = "exercise"
 app_mode = "running"
 wording = ""
 
@@ -97,7 +98,7 @@ i_pred = 1
 while True:
 
     success, img = cap.read()
-    img = cv2.flip(img, 1)
+    # img = cv2.flip(img, 1)
     seg = img.copy()
 
     if bg_image_path != None:

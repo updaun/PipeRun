@@ -20,6 +20,7 @@ from pytube import YouTube
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 import modules.PoseModule as pm
+import os
 
 # 유튜브 링크 입력으로 다운받아오는 부분
 download_path = './demo'
@@ -58,7 +59,7 @@ times.append(formant.ts())
 
 df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
 
-df.to_csv("pitchdata.csv")
+df.to_csv("demo/pitchdata.csv")
 
 
 
