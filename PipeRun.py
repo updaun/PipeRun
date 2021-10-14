@@ -2015,6 +2015,9 @@ def clicker():
     mute_count = 0
     mute_dir = 0
 
+    # 노트 나오는 속도 조절 값이 줄어들 수록 생성 속도가 빨라짐
+    difficulty = 30
+
     hide_streamlit_style = """
         <style>
         #MainMenu {visibility: hidden;}
@@ -2130,7 +2133,7 @@ def clicker():
         movedetector = pm.poseDetector()
 
         score = 0
-        note_count = 20
+        note_count = 40
         x_enemy = random.randint(50, 600)
         y_enemy = random.randint(50, 400)
 
@@ -2174,10 +2177,11 @@ def clicker():
                 continue
 
             image = img.copy()
+            image = cv2.flip(image, 1)
             movedetector.findPose(image)
             footlmList = movedetector.findPosition(image, draw=False)
 
-            if note_count == 10:
+            if note_count == difficulty:
                 mp3_time +=1
 
             # 원형 노트 생성
@@ -2200,7 +2204,7 @@ def clicker():
             if note_count == 0:
                 x_enemy = random.randint(50, 600)
                 y_enemy = make_pitch(sound, mp3_time)
-                note_count = 20  # random.randint(30,40)
+                note_count = 40  # random.randint(30,40)
 
 
             if len(footlmList) != 0:
@@ -2213,7 +2217,7 @@ def clicker():
                 cv2.circle(image, (x1, y1), 5, (0, 0, 0), 2)
                 cv2.circle(image, (x2, y2), 5, (0, 0, 0), 2)
 
-                if (540<x1<=640 and 430<y1<=480) or (540<x2<=640 and 430 < y2<=480):
+                if (0<x1<=100 and 0<y1<=50) or (0<x2<=100 and 0 < y2<=50):
                     mute_count += 1
                     
                     if mute_dir == 0:
@@ -2269,7 +2273,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 왼쪽 무릎으로 감지 했을 때
@@ -2277,7 +2281,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 발로 감지 했을 때
@@ -2285,7 +2289,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 발로 감지 했을 때
@@ -2293,7 +2297,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 손으로 감지 했을 때
@@ -2301,7 +2305,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                     # 손으로 감지 했을 때
@@ -2309,7 +2313,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                 # 삼각형일 때
@@ -2319,7 +2323,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                     # 왼쪽 무릎으로 감지 했을 때
@@ -2327,7 +2331,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                     # 발로 감지 했을 때
@@ -2335,7 +2339,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 발로 감지 했을 때
@@ -2343,7 +2347,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 손으로 감지 했을 때
@@ -2351,7 +2355,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 손으로 감지 했을 때
@@ -2359,7 +2363,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                 # 사각형일 때
@@ -2369,7 +2373,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 왼쪽 무릎으로 감지 했을 때
@@ -2377,7 +2381,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 발로 감지 했을 때
@@ -2385,7 +2389,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                     # 발로 감지 했을 때
@@ -2393,7 +2397,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score + 1
                     # 손으로 감지 했을 때
@@ -2401,7 +2405,7 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
                     # 손으로 감지 했을 때
@@ -2409,20 +2413,22 @@ def clicker():
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
-                        note_count = 15
+                        note_count = difficulty
                         mp3_time += 1
                         score = score - 1
 
-
-                image = cv2.flip(image, 1)
-
-                image[430:480, 0:100] = header_1
+                image[0:50, 0:100] = header_1
 
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 color = (255, 0, 255)
                 cv2.putText(image, "Score", (480, 30), font, 1, color, 4, cv2.LINE_AA)
                 cv2.putText(image, str(score), (590, 30), font, 1, color, 4, cv2.LINE_AA)
 
+            else:
+                wording = "Please Appear On The Screen"
+                coords = (80, 250)
+                cv2.rectangle(image,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
+                cv2.putText(image, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
             # FPS Counter logic
             currTime = time.time()
@@ -2431,6 +2437,7 @@ def clicker():
 
             # if record:
             #     out.write(image)
+            
                                         
             image = cv2.resize(image, (0,0), fx=0.8, fy=0.8)
             image = image_resize(image = image, width = 900)
