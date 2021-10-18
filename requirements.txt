@@ -10,7 +10,6 @@ base58==2.1.0
 beautifulsoup4==4.10.0
 bleach==4.1.0
 blinker==1.4
-bokeh==2.4.0
 bs4==0.0.1
 cachetools==4.2.2
 certifi==2021.5.30
@@ -134,7 +133,6 @@ toolz==0.11.1
 tornado==6.1
 tqdm==4.62.3
 traitlets==5.1.0
-typing-extensions==3.10.0.2
 tzdata==2021.2.post0
 tzlocal==3.0
 urllib3==1.26.6
