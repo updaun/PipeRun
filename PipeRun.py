@@ -2019,12 +2019,22 @@ def pipe_run_challenger():
 
 @app.addapp(title='Hi Clicker')
 def clicker():
-
     mute_count = 0
     mute_dir = 0
 
+    level = st.sidebar.slider("레벨을 선택하세요.", 1, 5, 1)
+
     # 노트 나오는 속도 조절 값이 줄어들 수록 생성 속도가 빨라짐
-    difficulty = 30
+    if level == 1:
+        difficulty = 60
+    if level == 2:
+        difficulty = 40
+    if level == 3:
+        difficulty = 20
+    if level == 4:
+        difficulty = 10
+    if level == 5:
+        difficulty = 5
 
     hide_streamlit_style = """
         <style>
@@ -2035,16 +2045,16 @@ def clicker():
     st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
     global score, x_enemy, y_enemy, count
-    
+
     # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
-    
+
     # record = st.checkbox("Record Video")
 
     folderPath = "examples/Header"
     myList = os.listdir(folderPath)
 
     # 덮어씌우는 이미지 리스트
-    overlayList =[]
+    overlayList = []
 
     # Header 폴더에 image를 상대경로로 지정
     for imPath in myList:
@@ -2081,7 +2091,7 @@ def clicker():
                 os.makedirs(video_download_path)
 
             video = YouTube(yt_url)
-            video_type = video.streams.filter(progressive = True, file_extension = "mp4").get_highest_resolution()
+            video_type = video.streams.filter(progressive=True, file_extension="mp4").get_highest_resolution()
             video_type.download(video_download_path)
 
             # 다운받은 비디오의 이름을 video.mp4로 바꾸기 -> 이러면 노래 하나만 있어야한다는 문제점.
@@ -2106,7 +2116,7 @@ def clicker():
             pitch = Sound.to_pitch()
             df = pd.DataFrame({"times": formant.ts()})
 
-            times =[]
+            times = []
             times.append(formant.ts())
 
             df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
@@ -2114,17 +2124,13 @@ def clicker():
             data_file_path = data_download_path + f"/{file_position}.csv"
             df.to_csv(data_file_path)
 
+        sound = pd.read_csv(data_file_path, index_col=0)
 
-
-        sound = pd.read_csv(data_file_path , index_col=0)
-        
         df = sound['F0(pitch)']
         # sound['times'] = sound['times'].astype(int)
-        normal_df =(df-df.min())/(df.max()-df.min())
+        normal_df = (df - df.min()) / (df.max() - df.min())
         pitch = normal_df.fillna(2)
         sound['F0(pitch)'] = pitch
-
-
 
         # 노래 삽입
         sounds = {}  # 빈 딕셔너리 생성
@@ -2135,18 +2141,17 @@ def clicker():
         sounds["screaming"].set_volume(0.4)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["song"] = pygame.mixer.Sound(audio_file_path)  # 재생할 파일 설정
         sounds["song"].set_volume(0.2)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
-        
 
         # class 객체 생성
         movedetector = pm.poseDetector()
 
+        cal = 0
         score = 0
         note_count = 40
         x_enemy = random.randint(50, 600)
         y_enemy = random.randint(50, 400)
 
         mp3_time = 0
-
 
         sounds["song"].play()
 
@@ -2155,9 +2160,9 @@ def clicker():
             i_pitch = df.iloc[i]['F0(pitch)']
             if i_pitch < 0.3:
                 result = random.randint(310, 400)
-            elif i_pitch >=0.3 and i_pitch<0.6:
+            elif i_pitch >= 0.3 and i_pitch < 0.6:
                 result = random.randint(220, 310)
-            elif i_pitch >=0.6 and i_pitch<=1:
+            elif i_pitch >= 0.6 and i_pitch <= 1:
                 result = random.randint(50, 220)
             elif i_pitch == 2:
                 result = random.randint(50, 400)
@@ -2165,7 +2170,6 @@ def clicker():
             return result
 
         prevTime = 0
-
 
         ########################################################
         # mediapipe opencv logic
@@ -2178,8 +2182,6 @@ def clicker():
 
         while vid.isOpened():
 
-            
-
             ret, img = vid.read()
             if not ret:
                 continue
@@ -2190,30 +2192,29 @@ def clicker():
             footlmList = movedetector.findPosition(image, draw=False)
 
             if note_count == difficulty:
-                mp3_time +=1
+                mp3_time += 1
 
             # 원형 노트 생성
             if note_count > 0 and y_enemy < 220:
                 note_count -= 1
                 cv2.circle(image, (x_enemy, y_enemy), 25,
-                        (0, 0, random.randint(0,255)), 5)
+                           (0, 0, random.randint(0, 255)), 5)
             # 삼각형 노트 생성
             elif note_count > 0 and y_enemy >= 220 and y_enemy < 300:
                 note_count -= 1
                 pts = np.array([[x_enemy, y_enemy], [x_enemy + 60, y_enemy], [x_enemy + 30, y_enemy - 49]], np.int32)
-                cv2.polylines(image, [pts], True, (0, 0, random.randint(0,255)), 3)
+                cv2.polylines(image, [pts], True, (0, 0, random.randint(0, 255)), 3)
             # 사각형 노트 생성
             elif note_count > 0 and y_enemy >= 300:
                 note_count -= 1
                 cv2.rectangle(image, (x_enemy, y_enemy), (x_enemy + 40, y_enemy + 40),
-                            (0, 0, random.randint(0,255)), 5)
+                              (0, 0, random.randint(0, 255)), 5)
 
             # 사용자가 감지를 못 했을 때
             if note_count == 0:
                 x_enemy = random.randint(50, 600)
                 y_enemy = make_pitch(sound, mp3_time)
                 note_count = 40  # random.randint(30,40)
-
 
             if len(footlmList) != 0:
 
@@ -2225,9 +2226,9 @@ def clicker():
                 cv2.circle(image, (x1, y1), 5, (0, 0, 0), 2)
                 cv2.circle(image, (x2, y2), 5, (0, 0, 0), 2)
 
-                if (0<x1<=100 and 0<y1<=50) or (0<x2<=100 and 0 < y2<=50):
+                if (0 < x1 <= 100 and 0 < y1 <= 50) or (0 < x2 <= 100 and 0 < y2 <= 50):
                     mute_count += 1
-                    
+
                     if mute_dir == 0:
                         header_1 = overlayList[13]
                     else:
@@ -2251,7 +2252,6 @@ def clicker():
                         mute_count = 0
                         header_1 = overlayList[10]
 
-
                 # 내 몸에 손목 그리기
                 cv2.circle(image, (footlmList[16][1:3]), 25, (0, 200, 0), 5)
                 cv2.circle(image, (footlmList[15][1:3]), 25, (0, 200, 0), 5)
@@ -2267,47 +2267,50 @@ def clicker():
 
                 # 냬 몸에 사각형 그리기
                 cv2.rectangle(image, (footlmList[31][1], footlmList[31][2]),
-                            (footlmList[31][1] + 40, footlmList[31][2] + 40),
-                            (0, 200, 0), 5)
+                              (footlmList[31][1] + 40, footlmList[31][2] + 40),
+                              (0, 200, 0), 5)
 
                 cv2.rectangle(image, (footlmList[32][1], footlmList[32][2]),
-                            (footlmList[32][1] + 40, footlmList[32][2] + 40),
-                            (0, 200, 0), 5)
-
+                              (footlmList[32][1] + 40, footlmList[32][2] + 40),
+                              (0, 200, 0), 5)
 
                 if y_enemy < 220:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2316,6 +2319,7 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2324,40 +2328,45 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.3
                 # 삼각형일 때
                 elif y_enemy >= 220 and y_enemy < 310:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2366,6 +2375,7 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2374,40 +2384,45 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                 # 사각형일 때
-                elif y_enemy>=310:
+                elif y_enemy >= 310:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = difficulty
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2416,6 +2431,7 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2424,18 +2440,26 @@ def clicker():
                         note_count = difficulty
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
 
                 image[0:50, 0:100] = header_1
 
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 color = (255, 0, 255)
-                cv2.putText(image, "Score", (480, 30), font, 1, color, 4, cv2.LINE_AA)
-                cv2.putText(image, str(score), (590, 30), font, 1, color, 4, cv2.LINE_AA)
+
+                cv2.rectangle(image, (450, 0), (800, 80), (16, 117, 255), -1)
+                cv2.putText(image, "Score", (570, 20), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
+                cv2.putText(image, str(score), (580, 60), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.putText(image, "Cal", (470, 20), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
+                cv2.putText(image, str(cal)[:3], (470, 60), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
 
             else:
                 wording = "Please Appear On The Screen"
                 coords = (80, 250)
-                cv2.rectangle(image,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
+                cv2.rectangle(image, (coords[0], coords[1] + 5), (coords[0] + len(wording) * 18, coords[1] - 30),
+                              (230, 230, 230), -1)
                 cv2.putText(image, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
             # FPS Counter logic
@@ -2445,11 +2469,10 @@ def clicker():
 
             # if record:
             #     out.write(image)
-            
-                                        
-            image = cv2.resize(image, (0,0), fx=0.8, fy=0.8)
-            image = image_resize(image = image, width = 900)
-            stframe.image(image, channels = 'BGR', use_column_width = 'auto')
+
+            image = cv2.resize(image, (0, 0), fx=0.8, fy=0.8)
+            image = image_resize(image=image, width=900)
+            stframe.image(image, channels='BGR', use_column_width='auto')
 
 
 app.run()
