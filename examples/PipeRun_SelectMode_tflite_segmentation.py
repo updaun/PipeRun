@@ -51,8 +51,8 @@ for imPath in myList:
 
 
 # 비디오 인풋
-# cap = cv2.VideoCapture(0)
-cap = cv2.VideoCapture("demo/running.mp4")
+cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture("demo/running.mp4")
 
 
 detector = hm.HolisticDetector()
@@ -65,7 +65,7 @@ actions = ['fit', 'stop']
 seq_length = 30
 
 # default mode
-mode = "exercise"
+mode = "select"
 app_mode = "running"
 wording = ""
 
@@ -74,6 +74,7 @@ header_2 = overlayList[2]
 header_3 = overlayList[4]
 header_4 = overlayList[6]
 header_5 = overlayList[8]
+header_6 = overlayList[12]
 
 running_select_count = 0
 walking_select_count = 0
@@ -91,14 +92,19 @@ rope_cal = 0
 sounds = {}  # 빈 딕셔너리 생성
 pygame.mixer.init()
 sounds["alaram"] = pygame.mixer.Sound("./examples/Assets/Sounds/alaram_audio.mp3")  # 재생할 파일 설정
-sounds["alaram"].set_volume(1)
+sounds["alaram"].set_volume(0.6)
+sounds["bgm"] = pygame.mixer.Sound("./examples/Assets/Sounds/ex_bgm.wav")
+sounds["bgm"].set_volume(0.3)
+sounds["bgm"].play() # bgm
 
 i_pred = 1
 
-while True:
+mute_count = 0
+mute_dir = 0
 
+while True:
     success, img = cap.read()
-    # img = cv2.flip(img, 1)
+    img = cv2.flip(img, 1)
     seg = img.copy()
 
     if bg_image_path != None:
@@ -113,8 +119,6 @@ while True:
 
     # 손이 감지가 되었을 때
     if len(lmList) != 0:
-        # print(lmList)
-
         # tip of Index fingers(검지 손가락의 좌표)
         x1, y1 = lmList[20][1:3]
         x2, y2 = lmList[19][1:3]
@@ -145,6 +149,19 @@ while True:
 
         if len(seq) < seq_length:
             continue
+        
+        action = actions[i_pred]
+        action_seq.append(action)
+
+        if len(action_seq) < 3:
+            continue
+
+        this_action = '?'
+        if action_seq[-1] == action_seq[-2] == action_seq[-3]:
+            this_action = action
+
+            if last_action != this_action:
+                last_action = this_action
 
         # 시퀀스 데이터와 넘파이화
         input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
@@ -161,18 +178,30 @@ while True:
                 interpreter_1.invoke()
                 y_pred = interpreter_1.get_tensor(output_details[0]['index'])
                 i_pred = int(np.argmax(y_pred[0]))
+                
+                if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                    my_HP += 0.18
+                    walk_cal += 4.0
             elif app_mode == "running":
                 print("running mode activate")
                 interpreter_2.set_tensor(input_details[0]['index'], input_data)
                 interpreter_2.invoke()
                 y_pred = interpreter_2.get_tensor(output_details[0]['index'])
                 i_pred = int(np.argmax(y_pred[0]))
+
+                if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                    my_HP += 0.18
+                    run_cal += 8.0
             elif app_mode == "jumping":
                 print("jumping mode activate")
                 interpreter_3.set_tensor(input_details[0]['index'], input_data)
                 interpreter_3.invoke()
                 y_pred = interpreter_3.get_tensor(output_details[0]['index'])
                 i_pred = int(np.argmax(y_pred[0]))
+                
+                if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                    my_HP += 0.18
+                    jump_cal += 5.5
             elif app_mode == "air rope":
                 print("air rope mode activate")
                 cv2.line(seg, (100, 460), (540,460), (0,0,200), 2)
@@ -181,19 +210,87 @@ while True:
                     interpreter_4.invoke()
                     y_pred = interpreter_4.get_tensor(output_details[0]['index'])
                     i_pred = int(np.argmax(y_pred[0]))
+
+                    if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                        my_HP += 0.18
+                        rope_cal += 5.5   
                 else:
                     wording = "Please Show Your Feet"
                     coords = (130, 250)
                     cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
                     cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-            
-            seg[0:50, 540:640] = header_5
+            if wording != 'Please Show Your Feet':
+                my_HP -= 0.1
+                
+            if my_HP > 100:
+                    my_HP = 100
+            if this_action.split(' ')[0] == 'stop':
+              if 30 <= my_HP <= 35 or 70 <= my_HP <= 75:
+                sounds["alaram"].play()
+            if my_HP <= 0:
+                wording = "GO! RUN! GO! RUN!"
+                coords = (160, 250)
+                cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
+                cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                my_HP = 0
 
+            seg[0:50, 540:640] = header_5
+    
+            # Get status box
+            cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
+        
+            # Display Class
+            cv2.putText(seg, 'ACTION'
+                    , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(seg, this_action.split(' ')[0]
+                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+            cv2.putText(seg, 'HP'
+                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(seg, str(round(my_HP, 1))
+                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+            total_cal = walk_cal + run_cal + jump_cal + rope_cal
+
+            cv2.putText(seg, 'cal'
+                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.putText(seg, str(total_cal)
+                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
         elif mode == "select":
+            wording = "Total Calories : "
+            coords = (130, 120)
+            cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
+            cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
+            if mute_dir == 0:
+                header_6 = overlayList[12] # music_on button activate 
+            else:
+                header_6 = overlayList[10] # mute button activate 
+
             header_5 = overlayList[9]
+
+            
         # Checking for the click
             if x1 < 100:
+                # mute
+                if y1<50:
+                    if mute_dir == 0:
+                        header_6 = overlayList[13] # music_on button activate 
+                    else:
+                        header_6 = overlayList[11] # mute button activate 
+
+                    mute_count += 1
+                    if (mute_count == 20) and (mute_dir == 0):
+                        sounds["bgm"].stop()
+                        mute_count = 0
+                        mute_dir = 1
+                        header_6 = overlayList[13]
+                                
+                    elif (mute_count == 20) and (mute_dir == 1):
+                        sounds["bgm"].play()
+                        mute_count = 0
+                        mute_dir = 0
+                        header_6 = overlayList[11]
                 # walking 
                 if 90<=y1<190:
                     print("walking mode")
@@ -232,9 +329,8 @@ while True:
                         app_mode = "running"
                         mode = "exercise"
                         header_5 = overlayList[8]
-
+            # jumping
             elif x2 > 540:
-                # jumping
                 if 90<=y2<190:
                     print("jumping mode")
                     header_1 = overlayList[0]
@@ -279,106 +375,17 @@ while True:
             seg[90:190, 540:640] = header_3
             seg[290:390, 540:640] = header_4
             seg[0:50, 540:640] = header_5
-            
-                
-        
+            seg[0:50, 0:100] = header_6
 
-        action = actions[i_pred]
-        action_seq.append(action)
-
-        if len(action_seq) < 3:
-            continue
-
-        this_action = '?'
-        if action_seq[-1] == action_seq[-2] == action_seq[-3]:
-            this_action = action
-
-            if last_action != this_action:
-                last_action = this_action
         
         # cv2.putText(img, f'{this_action.upper()}', org=(int(result.face_landmarks.landmark[0].x * img.shape[1]), int(result.face_landmarks.landmark[0].y * img.shape[0] + 20)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
-        # 도식의 기준 좌표 생성 (왼쪽 귀)
         coords = tuple(np.multiply(
                         np.array(
                             (result.pose_landmarks.landmark[7].x+20, 
                                 result.pose_landmarks.landmark[7].y))
-                    , [640,480]).astype(int))
-        
-        # 사각형 그리기
-        cv2.rectangle(seg, 
-                        # 사각형의 왼쪽 위
-                        (coords[0], coords[1]+5), 
-                        # 사각형의 오른쪽 아래
-                        (coords[0]+len(this_action)*20, coords[1]-30), 
-                        (245, 117, 16), -1) # -1 사각형 안을 가득 채운다.
-        # 어떤 액션인지 글자 표시
-        cv2.putText(seg, this_action, coords, 
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        
-        # Get status box
-        # cv2.rectangle(seg, (0,0), (170, 60), (245, 117, 16), -1)
-        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-        
-        # Display Class
-        cv2.putText(seg, 'ACTION'
-                    , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(seg, this_action.split(' ')[0]
-                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        
-        # Display Probability
-        # cv2.putText(seg, 'SCORE'
-        #             , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        # cv2.putText(seg, str(round(y_pred[0][np.argmax(y_pred[0])],2))
-        #             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                    , [640,480]).astype(int))   
 
-
-        # HP 계산 => 1분(1200프레임) stop 상태면 게임오버
-        if mode != 'select' and wording != 'Please Show Your Feet':
-            my_HP -= 0.1 #자동감소
-
-            if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
-                my_HP += 0.18
-    
-                if my_HP > 100:
-                    my_HP = 100
-
-        # 경고음 소리
-        if 25 <= my_HP <= 35 or 65 <= my_HP <= 75:
-            sounds["alaram"].play()
-
-        if my_HP <= 0:
-            wording = "GO! RUN! GO! RUN!"
-            coords = (160, 250)
-            cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
-            cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-            my_HP = 0
-
-        cv2.putText(seg, 'HP'
-                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(seg, str(round(my_HP, 1))
-                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-
-        # 칼로리 계산 => fit 프레임 갯수로 계산하기
-        # total = run + walk + jump + rope 
-        if mode != 'select' and wording != 'Please Show Your Feet':
-            if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
-                if app_mode == 'walking':
-                    walk_cal += 4.0
-                elif app_mode == 'running':
-                    run_cal += 8.0
-                elif app_mode == 'jumping':
-                    jump_cal += 5.5
-                elif app_mode == 'air rope':
-                    rope_cal += 5.5    
-        
-        total_cal = walk_cal + run_cal + jump_cal + rope_cal
-
-        cv2.putText(seg, 'cal'
-                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-        cv2.putText(seg, str(total_cal)
-                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-        
+ 
         cv2.imshow("Image", seg)
 
     if cv2.waitKey(1) & 0xFF == 27:
