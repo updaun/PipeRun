@@ -107,6 +107,7 @@ def image_resize(image, width=None, height=None, inter =cv2.INTER_AREA):
 
 @app.addapp(title='Home', is_home=True)
 def home():
+    pygame.mixer.stop()
     hide_streamlit_style = """
         <style>
         #MainMenu {visibility: hidden;}
@@ -138,7 +139,7 @@ def home():
 
         .bluepoint{border-bottom : 3px solid #b4e7f8; box-shadow:inset 0 -4px #b4e7f8;}
         .maintxt02{font-size: 22px; color: #a6a6a6; margin-top: 40px;}
-        .blue{ color: #2452c0;}
+        .blue{ color: #2452c0;} 
         .footer-txt{color: #fff; font-size:18px;}
         .footer-txt2{font-size:25px; font-wight:bold; color: #fff;}
 
@@ -870,6 +871,8 @@ def music():
 @app.addapp(title='Hi PipeRunner')
 def piperun_selectmode_tflite_mod():
 
+    pygame.mixer.stop()
+
     hide_streamlit_style = """
         <style>
         #MainMenu {visibility: hidden;}
@@ -882,25 +885,34 @@ def piperun_selectmode_tflite_mod():
     <style>
     div.stButton > button:first-child {
         font-size: 25px;
-        background-color: #0099ff;
+        background-color: #2452c0;
         color:#ffffff;
     }
     div.stButton > button:hover {
         font-size: 25px;
-        background-color: #00aa00;
-        color:#ffffff;
+        background-color: #b4e7f8;
+        color:#000000;
+        border:#ffffff 1px solid;
         }
     </style>""", unsafe_allow_html=True)
 
-    use_webcam = st.button('Run Hi PipeRunner!')
+    
     # record = st.checkbox("Record Video")
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([2.18, 1, 2])
     with col1:
         st.write('')
     with col2:
-        stframe = st.empty()
+        use_webcam = st.button('Run Hi PipeRunner!')
     with col3:
+        st.write('')
+
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('')
+    with col5:
+        stframe = st.empty()
+    with col6:
         st.write('')
 
     if use_webcam:
@@ -1327,6 +1339,8 @@ def piperun_selectmode_tflite_mod():
 
 @app.addapp(title='Hi Challenger')
 def pipe_run_challenger():
+
+    pygame.mixer.stop()
     
     hide_streamlit_style = """
         <style>
@@ -1340,28 +1354,38 @@ def pipe_run_challenger():
     <style>
     div.stButton > button:first-child {
         font-size: 25px;
-        background-color: #ff99ff;
-        color:#000000;
+        background-color: #2452c0;
+        color:#ffffff;
     }
     div.stButton > button:hover {
         font-size: 25px;
-        background-color: #00aa00;
-        color:#ffffff;
+        background-color: #b4e7f8;
+        color:#000000;
+        border:#ffffff 1px solid;
         }
     </style>""", unsafe_allow_html=True)
 
-    use_webcam = st.button('Run Hi Challenger!')
+    
     # record = st.checkbox("Record Video")
 
     folderPath = "examples\Header"
     header = cv2.imread(f'{folderPath}/mute.png')
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+
+    col1, col2, col3 = st.columns([2.18, 1, 2])
     with col1:
         st.write('')
     with col2:
-        stframe = st.empty()
+        use_webcam = st.button('Run Hi Challenger!')
     with col3:
+        st.write('')
+
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('')
+    with col5:
+        stframe = st.empty()
+    with col6:
         st.write('')
 
     if use_webcam:
@@ -2019,22 +2043,11 @@ def pipe_run_challenger():
 
 @app.addapp(title='Hi Clicker')
 def clicker():
+
+    pygame.mixer.stop()
+
     mute_count = 0
     mute_dir = 0
-
-    level = st.sidebar.slider("레벨을 선택하세요.", 1, 5, 1)
-
-    # 노트 나오는 속도 조절 값이 줄어들 수록 생성 속도가 빨라짐
-    if level == 1:
-        difficulty = 60
-    if level == 2:
-        difficulty = 40
-    if level == 3:
-        difficulty = 20
-    if level == 4:
-        difficulty = 10
-    if level == 5:
-        difficulty = 5
 
     hide_streamlit_style = """
         <style>
@@ -2063,17 +2076,38 @@ def clicker():
 
     header_1 = overlayList[12]
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        st.write('')
+        st.write('\n')
     with col2:
-        stframe = st.empty()
+        level = st.slider("레벨을 선택하세요.", 1, 5, 1)
     with col3:
         st.write('')
 
-    yt_url = st.text_input('유튜브 [공유 링크] 를 붙여 넣어주세요.')
-    st.text("데모를 시행시키려면 'demo'를 입력하세요.")
-    st.text("소리를 끄려면 'MUTE' 버튼을 2초간 Click! 하세요.")
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('\n')
+    with col5:
+        stframe = st.empty()
+        yt_url = st.text_input('유튜브 [공유 링크] 를 붙여 넣어주세요.')
+        st.text("데모를 시행시키려면 'demo'를 입력하세요.")
+        st.text("소리를 끄려면 'MUTE' 버튼을 2초간 Click! 하세요.")
+    with col6:
+        st.write('')
+
+    # 노트 나오는 속도 조절 값이 줄어들 수록 생성 속도가 빨라짐
+    if level == 1:
+        difficulty = 40
+    if level == 2:
+        difficulty = 35
+    if level == 3:
+        difficulty = 30
+    if level == 4:
+        difficulty = 25
+    if level == 5:
+        difficulty = 20
+
+    
 
     # if use_webcam:
 
@@ -2147,7 +2181,7 @@ def clicker():
 
         cal = 0
         score = 0
-        note_count = 40
+        note_count = difficulty
         x_enemy = random.randint(50, 600)
         y_enemy = random.randint(50, 400)
 
@@ -2214,7 +2248,7 @@ def clicker():
             if note_count == 0:
                 x_enemy = random.randint(50, 600)
                 y_enemy = make_pitch(sound, mp3_time)
-                note_count = 40  # random.randint(30,40)
+                note_count = difficulty  # random.randint(30,40)
 
             if len(footlmList) != 0:
 
@@ -2447,11 +2481,19 @@ def clicker():
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 color = (255, 0, 255)
 
-                cv2.rectangle(image, (450, 0), (800, 80), (16, 117, 255), -1)
-                cv2.putText(image, "Score", (570, 20), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
-                cv2.putText(image, str(score), (580, 60), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                cv2.putText(image, "Cal", (470, 20), font, 0.7, (0, 0, 0), 2, cv2.LINE_AA)
-                cv2.putText(image, str(cal)[:3], (470, 60), font, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+                # Display Class
+                cv2.rectangle(image, (470,0), (640, 60), (16, 117, 245), -1)
+                cv2.putText(image, 'CAL'
+                            , (560,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(image, str(cal)
+                            , (560,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
+                # Display Probability
+                cv2.putText(image, 'SCORE'
+                            , (485,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(image, str(score)
+                            , (485,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
 
 
