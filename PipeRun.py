@@ -33,6 +33,8 @@ import parselmouth
 import os.path
 from pytube import YouTube
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #################################################################################
 
@@ -1448,14 +1450,29 @@ def pipe_run_challenger():
         header_3 = overlayList[4]
         header_4 = overlayList[6]
         header_5 = overlayList[8]
-        header_6 = overlayList[12]
+        header_6 = overlayList[14]
 
         total_count = 0
+
+        squat_count = 0
+        lunge_count = 0
+        kneeup_count = 0
+        sll_count = 0
 
         squat_select_count = 0
         lunge_select_count = 0
         kneeup_select_count = 0
         sll_select_count = 0
+
+        total_cal = 0
+        last_rows = pd.DataFrame([total_cal])
+        
+        total_cal_dic = {}
+
+        squat_cal = 0
+        lunge_cal = 0
+        kneeup_cal = 0
+        sll_cal = 0
 
         pTime = 0
         dir = 0 
@@ -1501,6 +1518,11 @@ def pipe_run_challenger():
 
         ## Dashboard
         prevTime = 0
+
+
+        status_text = st.empty()
+        chart = st.line_chart(last_rows)
+
 
         ########################################################
         # mediapipe opencv logic
@@ -1643,16 +1665,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                squat_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                squat_count += 0.5
                                 dir = 0
-                                cal += 55
+                                squat_cal += 55
                                 HP += difficulty
 
                         # Draw bar
@@ -1662,17 +1684,23 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(squat_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(squat_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                     elif app_mode == "lunge":
                         print("lunge mode activate")
@@ -1716,16 +1744,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                lunge_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                lunge_count += 0.5
                                 dir = 0
-                                cal += 33
+                                lunge_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -1735,17 +1763,23 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(lunge_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(lunge_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                     elif app_mode == "knee up":
                         print("knee up mode activate")
@@ -1792,16 +1826,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                kneeup_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                kneeup_count += 0.5
                                 dir = 0
-                                cal += 33
+                                kneeup_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -1811,18 +1845,25 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(kneeup_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(kneeup_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
+
                     elif app_mode == "side lateral raise":
                         print("side lateral raise mode activate")
                         if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -1859,16 +1900,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                sll_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                sll_count += 0.5
                                 dir = 0
-                                cal += 33
+                                sll_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -1878,32 +1919,49 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(sll_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                            
+
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(sll_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+
                     seg[0:50, 540:640] = header_5
 
 
                 elif mode == "select":
 
                     if mute_dir == 0:
-                        header_6 = overlayList[12] # music_on button activate 
+                        header_6 = overlayList[14] # music_on button activate 
                     else:
-                        header_6 = overlayList[10] # mute button activate 
+                        header_6 = overlayList[14] # mute button activate 
+
+                    total_cal = squat_cal + lunge_cal + kneeup_cal + sll_cal
 
                     wording = "Total Calories : "
                     coords = (130, 120)
                     cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-                    cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                    cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
+                    total_count = squat_count + lunge_count + kneeup_count + sll_count
+
+                    wording = "Total Counts : "
+                    coords = (130, 200)
+                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
+                    cv2.putText(seg, wording + str(int(total_count)), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
 
                     header_5 = overlayList[9]
                 # Checking for the click
@@ -1911,22 +1969,36 @@ def pipe_run_challenger():
                         # walking 
                         if y1<50:
                             if mute_dir == 0:
-                                header_6 = overlayList[13] # music_on button activate 
+                                header_6 = overlayList[15] # music_on button activate 
                             else:
-                                header_6 = overlayList[11] # mute button activate 
+                                header_6 = overlayList[15] # mute button activate 
 
                             mute_count += 1
                             if (mute_count == 20) and (mute_dir == 0):
-                                sounds["back"].stop()
+                                # sounds["back"].stop()
                                 mute_count = 0
                                 mute_dir = 1
-                                header_6 = overlayList[13]
-                                
-                            elif (mute_count == 20) and (mute_dir == 1):
-                                sounds["back"].play()
-                                mute_count = 0
-                                mute_dir = 0
-                                header_6 = overlayList[11]
+                                header_6 = overlayList[15]
+
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
+
+                                break
+
+                            # elif (mute_count == 20) and (mute_dir == 1):
+                            #     sounds["back"].play()
+                            #     mute_count = 0
+                            #     mute_dir = 0
+                            #     header_6 = overlayList[11]
+
+                            #     total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                            #     new_rows = pd.DataFrame([total_cal])
+                            #     chart.add_rows(new_rows)
+                            #     last_rows = new_rows
                                 
                             
                         if 90<=y1<190:
@@ -1947,6 +2019,12 @@ def pipe_run_challenger():
                                 mode = "exercise"
                                 header_5 = overlayList[8]
 
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
+
                         # running
                         elif 290<=y1<390:
                             print("lunge mode")
@@ -1965,6 +2043,12 @@ def pipe_run_challenger():
                                 app_mode = "lunge"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
 
                     elif x2 > 540:
                         # jumping
@@ -1985,6 +2069,12 @@ def pipe_run_challenger():
                                 app_mode = "knee up"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+                                
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
                             
                         # air rope
                         elif 290<=y2<390:
@@ -2004,6 +2094,12 @@ def pipe_run_challenger():
                                 app_mode = "side lateral raise"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+                                
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
                     
                     print(total_count)
 
@@ -2039,6 +2135,81 @@ def pipe_run_challenger():
             stframe.image(seg, channels = 'BGR', use_column_width = 'auto')
 
 
+
+        counts = ['Squat', 'Lunge', 'Knee Up', 'Side Lateral Raise']
+        counts_data = [squat_count, lunge_count, kneeup_count, sll_count]
+        counts_df = pd.DataFrame(data = map(int, counts_data), columns=['Count'], index=['Squat', 'Lunge', 'Knee Up', 'Side Lateral Raise'])
+    
+        colors = sns.color_palette('hls', len(counts))
+
+        fig1 = plt.figure()
+        plt.bar(counts, counts_data, color=colors)
+
+        cal_data = [total_cal]
+        cal_df = pd.DataFrame(data = map(int, cal_data), columns=['Exercise'], index=['Total Calories'])
+
+        food_calories = {
+            '밥 한공기' : 310,
+            '떡볶이' : 300,
+            '삼겹살' : 460,
+            '라떼' : 180,
+            '피자' : 404,
+            '치킨' : 249,
+            '초코바' : 240,
+            '초밥' : 179,
+            '잔치국수' : 447,
+            '아이스크림' : 186,
+            '햄버거 세트' : 956,
+            '짜장면' : 785,
+            '짬뽕' : 464,
+            '국밥' : 470,
+            '아메리카노' : 4,
+            '사과' : 57,
+            '우유' : 65,
+            '바나나' : 93,
+            '군고구마' : 124,
+            '방울토마토' : 2,
+            '두부' : 88,
+            '삶은 달걀' : 68,
+            '인절미' : 220,
+            '치즈 케이크' : 265,
+            '롤케이크' : 244,
+            '슈크림빵' : 220,
+            '앙버터' : 674,
+            '바게트' : 44,
+            '소프트콘' : 145,
+            '회' : 136,
+            '짜장면 + 짬뽕' : 1249,
+            '지방' : 2000,
+            '신난다! 이만큼' : 3000,
+            '예! 전부 다' : 999999999
+        }
+
+        new_food_calories = sorted(food_calories.items(), key=lambda x:x[1], reverse=False)
+
+        st.empty()
+        st.write("---")
+        st.empty()
+
+        for food, cal in new_food_calories:
+            if total_cal == 0:
+                st.title(f'🥳 숨쉬기 운동이라도 하면 됐죠! 💪')
+                break
+
+            elif total_cal < cal:
+                st.title("🎉 WoW~ 어디서 좀 노셨군요? 🎉")
+                st.title(f'🥳 {food} 격파했어요! 빠샤! 💪')
+                break
+
+        st.balloons()
+
+        col_df_1, col_df_2 = st.columns(2)
+
+        with col_df_1:
+            st.write(counts_df.head())
+
+        with col_df_2:
+            st.pyplot(fig1)
 
 
 @app.addapp(title='Hi Clicker')
