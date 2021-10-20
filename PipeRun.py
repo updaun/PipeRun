@@ -32,6 +32,8 @@ import parselmouth
 import os.path
 from pytube import YouTube
 
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 #################################################################################
 
@@ -106,6 +108,7 @@ def image_resize(image, width=None, height=None, inter =cv2.INTER_AREA):
 
 @app.addapp(title='Home', is_home=True)
 def home():
+    pygame.mixer.stop()
     hide_streamlit_style = """
         <style>
         #MainMenu {visibility: hidden;}
@@ -137,7 +140,7 @@ def home():
 
         .bluepoint{border-bottom : 3px solid #b4e7f8; box-shadow:inset 0 -4px #b4e7f8;}
         .maintxt02{font-size: 22px; color: #a6a6a6; margin-top: 40px;}
-        .blue{ color: #2452c0;}
+        .blue{ color: #2452c0;} 
         .footer-txt{color: #fff; font-size:18px;}
         .footer-txt2{font-size:25px; font-wight:bold; color: #fff;}
 
@@ -863,15 +866,53 @@ def music():
 @app.addapp(title='Hi PipeRunner')
 def piperun_selectmode_tflite_mod():
 
+<<<<<<< Updated upstream
     use_webcam = st.button('Use Webcam')
     record = st.checkbox("Record Video")
+=======
+    pygame.mixer.stop()
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    m = st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        font-size: 25px;
+        background-color: #2452c0;
+        color:#ffffff;
+    }
+    div.stButton > button:hover {
+        font-size: 25px;
+        background-color: #b4e7f8;
+        color:#000000;
+        border:#ffffff 1px solid;
+        }
+    </style>""", unsafe_allow_html=True)
+
+    
+    # record = st.checkbox("Record Video")
+>>>>>>> Stashed changes
+
+    col1, col2, col3 = st.columns([2.18, 1, 2])
     with col1:
         st.write('')
     with col2:
-        stframe = st.empty()
+        use_webcam = st.button('Run Hi PipeRunner!')
     with col3:
+        st.write('')
+
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('')
+    with col5:
+        stframe = st.empty()
+    with col6:
         st.write('')
 
     if use_webcam:
@@ -948,6 +989,7 @@ def piperun_selectmode_tflite_mod():
         header_3 = overlayList[4]
         header_4 = overlayList[6]
         header_5 = overlayList[8]
+        header_6 = overlayList[12]
 
         running_select_count = 0
         walking_select_count = 0
@@ -967,6 +1009,13 @@ def piperun_selectmode_tflite_mod():
         sounds["alaram"] = pygame.mixer.Sound("./examples/Assets/Sounds/alaram_audio.mp3")  # 재생할 파일 설정
         sounds["alaram"].set_volume(1)
 
+        sounds["bgm"] = pygame.mixer.Sound("./examples/Assets/Sounds/ex_bgm.wav")
+        sounds["bgm"].set_volume(0.2)
+        sounds["bgm"].play() # bgm
+
+        mute_count = 0
+        mute_dir = 0
+       
         ## Dashboard
         prevTime = 0
 
@@ -1026,6 +1075,18 @@ def piperun_selectmode_tflite_mod():
 
                 if len(seq) < seq_length:
                     continue
+                action = actions[i_pred]
+                action_seq.append(action)
+
+                if len(action_seq) < 3:
+                    continue
+
+                this_action = '?'
+                if action_seq[-1] == action_seq[-2] == action_seq[-3]:
+                    this_action = action
+
+                    if last_action != this_action:
+                        last_action = this_action
 
                 # 시퀀스 데이터와 넘파이화
                 input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
@@ -1042,18 +1103,30 @@ def piperun_selectmode_tflite_mod():
                         interpreter_1.invoke()
                         y_pred = interpreter_1.get_tensor(output_details[0]['index'])
                         i_pred = int(np.argmax(y_pred[0]))
+
+                        if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                            my_HP += 0.18
+                            walk_cal += 4.0
                     elif app_mode == "running":
                         print("running mode activate")
                         interpreter_2.set_tensor(input_details[0]['index'], input_data)
                         interpreter_2.invoke()
                         y_pred = interpreter_2.get_tensor(output_details[0]['index'])
                         i_pred = int(np.argmax(y_pred[0]))
+
+                        if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                            my_HP += 0.18
+                            walk_cal += 8.0
                     elif app_mode == "jumping":
                         print("jumping mode activate")
                         interpreter_3.set_tensor(input_details[0]['index'], input_data)
                         interpreter_3.invoke()
                         y_pred = interpreter_3.get_tensor(output_details[0]['index'])
                         i_pred = int(np.argmax(y_pred[0]))
+
+                        if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                            my_HP += 0.18
+                            walk_cal += 5.5
                     elif app_mode == "air rope":
                         print("air rope mode activate")
                         cv2.line(seg, (100, 460), (540,460), (0,0,200), 2)
@@ -1062,19 +1135,86 @@ def piperun_selectmode_tflite_mod():
                             interpreter_4.invoke()
                             y_pred = interpreter_4.get_tensor(output_details[0]['index'])
                             i_pred = int(np.argmax(y_pred[0]))
+
+                            if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
+                                my_HP += 0.18
+                            walk_cal += 5.5
                         else:
                             wording = "Please Show Your Feet"
                             coords = (130, 250)
                             cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
                             cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-                    
+                    if wording != 'Please Show Your Feet':
+                        my_HP -= 0.1
+                    if my_HP > 100:
+                        my_HP = 100
+                    if this_action.split(' ')[0] == 'stop':
+                        if 30 <= my_HP <= 35 or 70 <= my_HP <= 75:
+                            sounds["alaram"].play()
+
+                    if my_HP <= 0:
+                        wording = "GO! RUN! GO! RUN!"
+                        coords = (160, 250)
+                        cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
+                        cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                        my_HP = 0   
+
                     seg[0:50, 540:640] = header_5
 
+                    # Get status box
+                    cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
+        
+                    # Display Class
+                    cv2.putText(seg, 'ACTION'
+                            , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                    cv2.putText(seg, this_action.split(' ')[0]
+                            , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                    cv2.putText(seg, 'HP'
+                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                    cv2.putText(seg, str(round(my_HP, 1))
+                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+                    total_cal = walk_cal + run_cal + jump_cal + rope_cal
+
+                    cv2.putText(seg, 'cal'
+                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                    cv2.putText(seg, str(total_cal)
+                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
                 elif mode == "select":
+                    wording = "Total Calories : "
+                    coords = (130, 120)
+                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
+                    cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
+                    if mute_dir == 0:
+                        header_6 = overlayList[12] # music_on button activate 
+                    else:
+                        header_6 = overlayList[10] # mute button activate 
+
                     header_5 = overlayList[9]
                 # Checking for the click
                     if x1 < 100:
+                        # mute
+                        if y1<50:
+                            if mute_dir == 0:
+                                header_6 = overlayList[13] # music_on button activate 
+                            else:
+                                header_6 = overlayList[11] # mute button activate 
+
+                            mute_count += 1
+                            if (mute_count == 20) and (mute_dir == 0):
+                                sounds["bgm"].stop()
+                                mute_count = 0
+                                mute_dir = 1
+                                header_6 = overlayList[13]
+                                        
+                            elif (mute_count == 20) and (mute_dir == 1):
+                                sounds["bgm"].play()
+                                mute_count = 0
+                                mute_dir = 0
+                                header_6 = overlayList[11]
+
                         # walking 
                         if 90<=y1<190:
                             print("walking mode")
@@ -1160,105 +1300,14 @@ def piperun_selectmode_tflite_mod():
                     seg[90:190, 540:640] = header_3
                     seg[290:390, 540:640] = header_4
                     seg[0:50, 540:640] = header_5
-                
-
-                action = actions[i_pred]
-                action_seq.append(action)
-
-                if len(action_seq) < 3:
-                    continue
-
-                this_action = '?'
-                if action_seq[-1] == action_seq[-2] == action_seq[-3]:
-                    this_action = action
-
-                    if last_action != this_action:
-                        last_action = this_action
-                
-                # cv2.putText(img, f'{this_action.upper()}', org=(int(result.face_landmarks.landmark[0].x * img.shape[1]), int(result.face_landmarks.landmark[0].y * img.shape[0] + 20)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
-                # 도식의 기준 좌표 생성 (왼쪽 귀)
+                    seg[0:50, 0:100] = header_6
+            
                 coords = tuple(np.multiply(
                                 np.array(
                                     (result.pose_landmarks.landmark[7].x+20, 
                                         result.pose_landmarks.landmark[7].y))
                             , [640,480]).astype(int))
                 
-                # 사각형 그리기
-                cv2.rectangle(seg, 
-                                # 사각형의 왼쪽 위
-                                (coords[0], coords[1]+5), 
-                                # 사각형의 오른쪽 아래
-                                (coords[0]+len(this_action)*20, coords[1]-30), 
-                                (245, 117, 16), -1) # -1 사각형 안을 가득 채운다.
-                # 어떤 액션인지 글자 표시
-                cv2.putText(seg, this_action, coords, 
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                
-                # Get status box
-                # cv2.rectangle(seg, (0,0), (170, 60), (245, 117, 16), -1)
-                cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-                
-                # Display Class
-                cv2.putText(seg, 'ACTION'
-                            , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, this_action.split(' ')[0]
-                            , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                
-                # Display Probability
-                # cv2.putText(seg, 'SCORE'
-                #             , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                # cv2.putText(seg, str(round(y_pred[0][np.argmax(y_pred[0])],2))
-                #             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-
-                # HP 계산 => 1분(1200프레임) stop 상태면 게임오버
-                if mode != 'select' and wording != 'Please Show Your Feet':
-                    my_HP -= 0.1 #자동감소
-
-                    if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
-                        my_HP += 0.18
-            
-                        if my_HP > 100:
-                            my_HP = 100
-
-                # 경고음 소리
-                if 25 <= my_HP <= 35 or 65 <= my_HP <= 75:
-                    sounds["alaram"].play()
-
-                if my_HP <= 0:
-                    wording = "GO! RUN! GO! RUN!"
-                    coords = (160, 250)
-                    cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
-                    cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-                    my_HP = 0
-
-                cv2.putText(seg, 'HP'
-                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, str(round(my_HP, 1))
-                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-
-                # 칼로리 계산 => fit 프레임 갯수로 계산하기
-                # total = run + walk + jump + rope 
-                if mode != 'select' and wording != 'Please Show Your Feet':
-                    if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
-                        if app_mode == 'walking':
-                            walk_cal += 4.0
-                        elif app_mode == 'running':
-                            run_cal += 8.0
-                        elif app_mode == 'jumping':
-                            jump_cal += 5.5
-                        elif app_mode == 'air rope':
-                            rope_cal += 5.5    
-                
-                total_cal = walk_cal + run_cal + jump_cal + rope_cal
-
-                cv2.putText(seg, 'cal'
-                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(seg, str(total_cal)
-                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                
-
 
                 # FPS Counter logic
                 currTime = time.time()
@@ -1773,19 +1822,58 @@ def piperun_selectmode_angle():
 
 @app.addapp(title='Hi Challenger')
 def pipe_run_challenger():
+
+    pygame.mixer.stop()
     
+<<<<<<< Updated upstream
     use_webcam = st.button('Use Webcam')
     record = st.checkbox("Record Video")
+=======
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+    m = st.markdown("""
+    <style>
+    div.stButton > button:first-child {
+        font-size: 25px;
+        background-color: #2452c0;
+        color:#ffffff;
+    }
+    div.stButton > button:hover {
+        font-size: 25px;
+        background-color: #b4e7f8;
+        color:#000000;
+        border:#ffffff 1px solid;
+        }
+    </style>""", unsafe_allow_html=True)
+
+    
+    # record = st.checkbox("Record Video")
+>>>>>>> Stashed changes
 
     folderPath = "examples\Header"
-    header = cv2.imread(f'{folderPath}/mute.png')
+    # header = cv2.imread(f'{folderPath}/mute.png')
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+
+    col1, col2, col3 = st.columns([2.18, 1, 2])
     with col1:
         st.write('')
     with col2:
-        stframe = st.empty()
+        use_webcam = st.button('Run Hi Challenger!')
     with col3:
+        st.write('')
+
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('')
+    with col5:
+        stframe = st.empty()
+    with col6:
         st.write('')
 
     if use_webcam:
@@ -1848,14 +1936,33 @@ def pipe_run_challenger():
         header_3 = overlayList[4]
         header_4 = overlayList[6]
         header_5 = overlayList[8]
+<<<<<<< Updated upstream
         header_6 = overlayList[10]
+=======
+        header_6 = overlayList[14]
+>>>>>>> Stashed changes
 
         total_count = 0
+
+        squat_count = 0
+        lunge_count = 0
+        kneeup_count = 0
+        sll_count = 0
 
         squat_select_count = 0
         lunge_select_count = 0
         kneeup_select_count = 0
         sll_select_count = 0
+
+        total_cal = 0
+        last_rows = pd.DataFrame([total_cal])
+        
+        total_cal_dic = {}
+
+        squat_cal = 0
+        lunge_cal = 0
+        kneeup_cal = 0
+        sll_cal = 0
 
         pTime = 0
         dir = 0 
@@ -1900,6 +2007,11 @@ def pipe_run_challenger():
 
         ## Dashboard
         prevTime = 0
+
+
+        status_text = st.empty()
+        chart = st.line_chart(last_rows)
+
 
         ########################################################
         # mediapipe opencv logic
@@ -2042,16 +2154,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                squat_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                squat_count += 0.5
                                 dir = 0
-                                cal += 55
+                                squat_cal += 55
                                 HP += difficulty
 
                         # Draw bar
@@ -2061,17 +2173,23 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(squat_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(squat_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                     elif app_mode == "lunge":
                         print("lunge mode activate")
@@ -2115,16 +2233,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                lunge_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                lunge_count += 0.5
                                 dir = 0
-                                cal += 33
+                                lunge_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -2134,17 +2252,23 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(lunge_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(lunge_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                     elif app_mode == "knee up":
                         print("knee up mode activate")
@@ -2191,16 +2315,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                kneeup_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                kneeup_count += 0.5
                                 dir = 0
-                                cal += 33
+                                kneeup_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -2210,18 +2334,25 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(kneeup_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(kneeup_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
+
                     elif app_mode == "side lateral raise":
                         print("side lateral raise mode activate")
                         if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -2258,16 +2389,16 @@ def pipe_run_challenger():
                             color = (0,200,0)        
                             if dir == 0:
                                 sounds["pose_ok"].play()
-                                total_count += 0.5
+                                sll_count += 0.5
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
                             color = (0,200,0)        
                             if dir == 1:
                                 sounds["get_score"].play()
-                                total_count += 0.5
+                                sll_count += 0.5
                                 dir = 0
-                                cal += 33
+                                sll_cal += 33
                                 HP += difficulty
 
                         # Draw bar
@@ -2277,35 +2408,96 @@ def pipe_run_challenger():
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
                         # Display Class
-                        cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                         cv2.putText(seg, 'COUNT'
-                                    , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(total_count))
-                                    , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(int(sll_count))
+                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                         # Display Probability
                         cv2.putText(seg, 'HP'
                                     , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                         cv2.putText(seg, str(HP)
                                     , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                            
+
+                        # Calorie Counting
+                        cv2.putText(seg, 'cal'
+                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                        cv2.putText(seg, str(sll_cal)
+                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                        
+
                     seg[0:50, 540:640] = header_5
 
 
                 elif mode == "select":
 
+<<<<<<< Updated upstream
+=======
+                    if mute_dir == 0:
+                        header_6 = overlayList[14] # music_on button activate 
+                    else:
+                        header_6 = overlayList[14] # mute button activate 
+
+                    total_cal = squat_cal + lunge_cal + kneeup_cal + sll_cal
+
+>>>>>>> Stashed changes
                     wording = "Total Calories : "
                     coords = (130, 120)
                     cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-                    cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                    cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
+                    total_count = squat_count + lunge_count + kneeup_count + sll_count
+
+                    wording = "Total Counts : "
+                    coords = (130, 200)
+                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
+                    cv2.putText(seg, wording + str(int(total_count)), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+
 
                     header_5 = overlayList[9]
                 # Checking for the click
                     if x1 < 100:
                         # walking 
                         if y1<50:
+<<<<<<< Updated upstream
                             sounds["back"].stop()
                             break   
+=======
+                            if mute_dir == 0:
+                                header_6 = overlayList[15] # music_on button activate 
+                            else:
+                                header_6 = overlayList[15] # mute button activate 
+
+                            mute_count += 1
+                            if (mute_count == 20) and (mute_dir == 0):
+                                # sounds["back"].stop()
+                                mute_count = 0
+                                mute_dir = 1
+                                header_6 = overlayList[15]
+
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
+
+                                break
+
+                            # elif (mute_count == 20) and (mute_dir == 1):
+                            #     sounds["back"].play()
+                            #     mute_count = 0
+                            #     mute_dir = 0
+                            #     header_6 = overlayList[11]
+
+                            #     total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                            #     new_rows = pd.DataFrame([total_cal])
+                            #     chart.add_rows(new_rows)
+                            #     last_rows = new_rows
+                                
+                            
+>>>>>>> Stashed changes
                         if 90<=y1<190:
                             print("squat mode")
                             header_1 = overlayList[1]
@@ -2323,6 +2515,12 @@ def pipe_run_challenger():
                                 app_mode = "squat"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
 
                         # running
                         elif 290<=y1<390:
@@ -2343,6 +2541,12 @@ def pipe_run_challenger():
                                 mode = "exercise"
                                 header_5 = overlayList[8]
 
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
+
                     elif x2 > 540:
                         # jumping
                         if 90<=y2<190:
@@ -2362,6 +2566,12 @@ def pipe_run_challenger():
                                 app_mode = "knee up"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+                                
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
                             
                         # air rope
                         elif 290<=y2<390:
@@ -2381,6 +2591,12 @@ def pipe_run_challenger():
                                 app_mode = "side lateral raise"
                                 mode = "exercise"
                                 header_5 = overlayList[8]
+                                
+                                total_count = squat_count + lunge_count + kneeup_count + sll_count
+            
+                                new_rows = pd.DataFrame([total_cal])
+                                chart.add_rows(new_rows)
+                                last_rows = new_rows
                     
                     print(total_count)
 
@@ -2418,29 +2634,163 @@ def pipe_run_challenger():
 
 
 
+        counts = ['Squat', 'Lunge', 'Knee Up', 'Side Lateral Raise']
+        counts_data = [squat_count, lunge_count, kneeup_count, sll_count]
+        counts_df = pd.DataFrame(data = map(int, counts_data), columns=['Count'], index=['Squat', 'Lunge', 'Knee Up', 'Side Lateral Raise'])
+    
+        colors = sns.color_palette('hls', len(counts))
+
+        fig1 = plt.figure()
+        plt.bar(counts, counts_data, color=colors)
+
+        cal_data = [total_cal]
+        cal_df = pd.DataFrame(data = map(int, cal_data), columns=['Exercise'], index=['Total Calories'])
+
+        food_calories = {
+            '밥 한공기' : 310,
+            '떡볶이' : 300,
+            '삼겹살' : 460,
+            '라떼' : 180,
+            '피자' : 404,
+            '치킨' : 249,
+            '초코바' : 240,
+            '초밥' : 179,
+            '잔치국수' : 447,
+            '아이스크림' : 186,
+            '햄버거 세트' : 956,
+            '짜장면' : 785,
+            '짬뽕' : 464,
+            '국밥' : 470,
+            '아메리카노' : 4,
+            '사과' : 57,
+            '우유' : 65,
+            '바나나' : 93,
+            '군고구마' : 124,
+            '방울토마토' : 2,
+            '두부' : 88,
+            '삶은 달걀' : 68,
+            '인절미' : 220,
+            '치즈 케이크' : 265,
+            '롤케이크' : 244,
+            '슈크림빵' : 220,
+            '앙버터' : 674,
+            '바게트' : 44,
+            '소프트콘' : 145,
+            '회' : 136,
+            '짜장면 + 짬뽕' : 1249,
+            '지방' : 2000,
+            '신난다! 이만큼' : 3000,
+            '예! 전부 다' : 999999999
+        }
+
+        new_food_calories = sorted(food_calories.items(), key=lambda x:x[1], reverse=False)
+
+        st.empty()
+        st.write("---")
+        st.empty()
+
+        for food, cal in new_food_calories:
+            if total_cal == 0:
+                st.title(f'🥳 숨쉬기 운동이라도 하면 됐죠! 💪')
+                break
+
+            elif total_cal < cal:
+                st.title("🎉 WoW~ 어디서 좀 노셨군요? 🎉")
+                st.title(f'🥳 {food} 격파했어요! 빠샤! 💪')
+                break
+
+        st.balloons()
+
+        col_df_1, col_df_2 = st.columns(2)
+
+        with col_df_1:
+            st.write(counts_df.head())
+
+        with col_df_2:
+            st.pyplot(fig1)
 
 @app.addapp(title='Hi Clicker')
 def clicker():
+<<<<<<< Updated upstream
+=======
+
+    pygame.mixer.stop()
+
+    mute_count = 0
+    mute_dir = 0
+
+    hide_streamlit_style = """
+        <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        </style>
+        """
+    st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
+>>>>>>> Stashed changes
     global score, x_enemy, y_enemy, count
-    
+
     # sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
+<<<<<<< Updated upstream
     
     record = st.checkbox("Record Video")
 
     folderPath = "examples\Header"
+=======
+
+    # record = st.checkbox("Record Video")
+
+    folderPath = "examples/Header"
+    myList = os.listdir(folderPath)
+
+    # 덮어씌우는 이미지 리스트
+    overlayList = []
+
+    # Header 폴더에 image를 상대경로로 지정
+    for imPath in myList:
+        image = cv2.imread(f'{folderPath}/{imPath}')
+        overlayList.append(image)
+>>>>>>> Stashed changes
 
     header = cv2.imread(f'{folderPath}/mute.png')
 
-    col1, col2, col3 = st.columns([1, 4, 1])
+    col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
-        st.write('')
+        st.write('\n')
     with col2:
-        stframe = st.empty()
+        level = st.slider("레벨을 선택하세요.", 1, 5, 1)
     with col3:
         st.write('')
 
+<<<<<<< Updated upstream
 
     yt_url = st.text_input('유튜브 링크를 붙여 넣어주세요')
+=======
+    col4, col5, col6 = st.columns([1, 3, 1])
+    with col4:
+        st.write('\n')
+    with col5:
+        stframe = st.empty()
+        yt_url = st.text_input('유튜브 [공유 링크] 를 붙여 넣어주세요.')
+        st.text("데모를 시행시키려면 'demo'를 입력하세요.")
+        st.text("소리를 끄려면 'MUTE' 버튼을 2초간 Click! 하세요.")
+    with col6:
+        st.write('')
+
+    # 노트 나오는 속도 조절 값이 줄어들 수록 생성 속도가 빨라짐
+    if level == 1:
+        difficulty = 40
+    if level == 2:
+        difficulty = 35
+    if level == 3:
+        difficulty = 30
+    if level == 4:
+        difficulty = 25
+    if level == 5:
+        difficulty = 20
+
+    
+>>>>>>> Stashed changes
 
     # if use_webcam:
 
@@ -2454,8 +2804,14 @@ def clicker():
         # 유튜브 링크 입력으로 다운받아오는 부분
         download_path = './media'
 
+<<<<<<< Updated upstream
         if not os.path.exists(download_path):
             os.makedirs(download_path)
+=======
+            video = YouTube(yt_url)
+            video_type = video.streams.filter(progressive=True, file_extension="mp4").get_highest_resolution()
+            video_type.download(video_download_path)
+>>>>>>> Stashed changes
 
         video = YouTube(yt_url)
         video_type = video.streams.filter(progressive = True, file_extension = "mp4").get_highest_resolution()
@@ -2482,14 +2838,21 @@ def clicker():
         pitch = Sound.to_pitch()
         df = pd.DataFrame({"times": formant.ts()})
 
+<<<<<<< Updated upstream
         times =[]
         times.append(formant.ts())
+=======
+            times = []
+            times.append(formant.ts())
+>>>>>>> Stashed changes
 
         df['F0(pitch)'] = df['times'].map(lambda x: pitch.get_value_at_time(time=x))
 
         df.to_csv("media/pitchdata.csv")
 
+        sound = pd.read_csv(data_file_path, index_col=0)
 
+<<<<<<< Updated upstream
 
         sound = pd.read_csv("media/pitchdata.csv", index_col=0)
         #
@@ -2510,6 +2873,13 @@ def clicker():
         mpDraw = mp.solutions.drawing_utils
         mpHands = mp.solutions.hands
         hands = mpHands.Hands()
+=======
+        df = sound['F0(pitch)']
+        # sound['times'] = sound['times'].astype(int)
+        normal_df = (df - df.min()) / (df.max() - df.min())
+        pitch = normal_df.fillna(2)
+        sound['F0(pitch)'] = pitch
+>>>>>>> Stashed changes
 
         # 노래 삽입
         sounds = {}  # 빈 딕셔너리 생성
@@ -2517,22 +2887,32 @@ def clicker():
         sounds["slap"] = pygame.mixer.Sound("examples\Assets\Sounds\slap.wav")  # 재생할 파일 설정
         sounds["slap"].set_volume(1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["screaming"] = pygame.mixer.Sound("examples\Assets\Sounds\Effect.wav")  # 재생할 파일 설정
+<<<<<<< Updated upstream
         sounds["screaming"].set_volume(1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["song"] = pygame.mixer.Sound("media/audio.mp3")  # 재생할 파일 설정
         sounds["song"].set_volume(0.3)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         
+=======
+        sounds["screaming"].set_volume(0.4)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+        sounds["song"] = pygame.mixer.Sound(audio_file_path)  # 재생할 파일 설정
+        sounds["song"].set_volume(0.2)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+>>>>>>> Stashed changes
 
         # class 객체 생성
         detector = hm.HolisticDetector()
         movedetector = pm.poseDetector()
 
+        cal = 0
         score = 0
+<<<<<<< Updated upstream
         note_count = 20
+=======
+        note_count = difficulty
+>>>>>>> Stashed changes
         x_enemy = random.randint(50, 600)
         y_enemy = random.randint(50, 400)
 
         mp3_time = 0
-
 
         sounds["song"].play()
 
@@ -2544,9 +2924,9 @@ def clicker():
             i_pitch = df.iloc[i]['F0(pitch)']
             if i_pitch < 0.3:
                 result = random.randint(310, 400)
-            elif i_pitch >=0.3 and i_pitch<0.6:
+            elif i_pitch >= 0.3 and i_pitch < 0.6:
                 result = random.randint(220, 310)
-            elif i_pitch >=0.6 and i_pitch<=1:
+            elif i_pitch >= 0.6 and i_pitch <= 1:
                 result = random.randint(50, 220)
             elif i_pitch == 2:
                 result = random.randint(50, 400)
@@ -2591,11 +2971,14 @@ def clicker():
 
         prevTime = 0
 
-
         ########################################################
         # mediapipe opencv logic
         ########################################################
         while vid.isOpened():
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             ret, img = vid.read()
             if not ret:
                 continue
@@ -2604,29 +2987,35 @@ def clicker():
             movedetector.findPose(image)
             footlmList = movedetector.findPosition(image, draw=False)
 
+<<<<<<< Updated upstream
             if note_count == 10:
                 mp3_time +=1
+=======
+            if note_count == difficulty:
+                mp3_time += 1
+>>>>>>> Stashed changes
 
             # 원형 노트 생성
             if note_count > 0 and y_enemy < 220:
                 note_count -= 1
                 cv2.circle(image, (x_enemy, y_enemy), 25,
-                        (0, 0, random.randint(0,255)), 5)
+                           (0, 0, random.randint(0, 255)), 5)
             # 삼각형 노트 생성
             elif note_count > 0 and y_enemy >= 220 and y_enemy < 300:
                 note_count -= 1
                 pts = np.array([[x_enemy, y_enemy], [x_enemy + 60, y_enemy], [x_enemy + 30, y_enemy - 49]], np.int32)
-                cv2.polylines(image, [pts], True, (0, 0, random.randint(0,255)), 3)
+                cv2.polylines(image, [pts], True, (0, 0, random.randint(0, 255)), 3)
             # 사각형 노트 생성
             elif note_count > 0 and y_enemy >= 300:
                 note_count -= 1
                 cv2.rectangle(image, (x_enemy, y_enemy), (x_enemy + 40, y_enemy + 40),
-                            (0, 0, random.randint(0,255)), 5)
+                              (0, 0, random.randint(0, 255)), 5)
 
             # 사용자가 감지를 못 했을 때
             if note_count == 0:
                 x_enemy = random.randint(50, 600)
                 y_enemy = make_pitch(sound, mp3_time)
+<<<<<<< Updated upstream
                 note_count = 20  # random.randint(30,40)
 
 
@@ -2636,6 +3025,9 @@ def clicker():
             # LefthandLandmarkList = detector.findLefthandLandmark(image)
             # # 오른손 좌표 리스트
             # RighthandLandmarkList = detector.findRighthandLandmark(image)
+=======
+                note_count = difficulty  # random.randint(30,40)
+>>>>>>> Stashed changes
 
             if len(footlmList) != 0:
 
@@ -2643,10 +3035,42 @@ def clicker():
                 x1, y1 = footlmList[20][1:3]
                 x2, y2 = footlmList[19][1:3]
 
+<<<<<<< Updated upstream
                 if (540<x1<=640 and y1 < 50) or (540<x2<=640 and y2 < 50):
                     print("stop command")
                     sounds["song"].stop()
                     break
+=======
+                # 에어 커서
+                cv2.circle(image, (x1, y1), 5, (0, 0, 0), 2)
+                cv2.circle(image, (x2, y2), 5, (0, 0, 0), 2)
+
+                if (0 < x1 <= 100 and 0 < y1 <= 50) or (0 < x2 <= 100 and 0 < y2 <= 50):
+                    mute_count += 1
+
+                    if mute_dir == 0:
+                        header_1 = overlayList[13]
+                    else:
+                        header_1 = overlayList[11]
+
+                    if mute_count == 20 and mute_dir == 0:
+                        print("stop command")
+                        sounds["song"].stop()
+                        mute_dir = 1
+                        mute_count = 0
+                    elif mute_count == 20 and mute_dir == 1:
+                        print("music start")
+                        sounds["song"].play()
+                        mute_dir = 0
+                        mute_count = 0
+                else:
+                    if mute_dir == 0:
+                        mute_count = 0
+                        header_1 = overlayList[12]
+                    else:
+                        mute_count = 0
+                        header_1 = overlayList[10]
+>>>>>>> Stashed changes
 
                 # 내 몸에 손목 그리기
                 cv2.circle(image, (footlmList[16][1:3]), 25, (0, 200, 0), 5)
@@ -2663,47 +3087,50 @@ def clicker():
 
                 # 냬 몸에 사각형 그리기
                 cv2.rectangle(image, (footlmList[31][1], footlmList[31][2]),
-                            (footlmList[31][1] + 40, footlmList[31][2] + 40),
-                            (0, 200, 0), 5)
+                              (footlmList[31][1] + 40, footlmList[31][2] + 40),
+                              (0, 200, 0), 5)
 
                 cv2.rectangle(image, (footlmList[32][1], footlmList[32][2]),
-                            (footlmList[32][1] + 40, footlmList[32][2] + 40),
-                            (0, 200, 0), 5)
-
+                              (footlmList[32][1] + 40, footlmList[32][2] + 40),
+                              (0, 200, 0), 5)
 
                 if y_enemy < 220:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2712,6 +3139,7 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2720,40 +3148,45 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.3
                 # 삼각형일 때
                 elif y_enemy >= 220 and y_enemy < 310:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2762,6 +3195,7 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2770,40 +3204,45 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                 # 사각형일 때
-                elif y_enemy>=310:
+                elif y_enemy >= 310:
                     # 오른쪽 무릎으로 감지 했을 때
-                    if abs(footlmList[25][1] - x_enemy) < 30 and abs(footlmList[25][2] - y_enemy) < 30:
+                    if abs(footlmList[25][1] - x_enemy - 30) < 30 and abs(footlmList[25][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 왼쪽 무릎으로 감지 했을 때
-                    elif abs(footlmList[26][1] - x_enemy) < 30 and abs(footlmList[26][2] - y_enemy) < 30:
+                    elif abs(footlmList[26][1] - x_enemy - 30) < 30 and abs(footlmList[26][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("fail")
                         sounds["screaming"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.4
                     # 발로 감지 했을 때
-                    elif abs(footlmList[31][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[31][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.35
                     # 발로 감지 했을 때
-                    elif abs(footlmList[32][1] - x_enemy) < 30 and abs(footlmList[32][2] - y_enemy) < 30:
+                    elif abs(footlmList[32][1] - x_enemy - 20) < 30 and abs(footlmList[32][2] - y_enemy - 20) < 30:
                         x_enemy, y_enemy = 1000, 1000
                         print("found")
                         sounds["slap"].play()  # 음원 재생
                         note_count = 15
                         mp3_time += 1
                         score = score + 1
+                        cal = cal + 0.35
                     # 손으로 감지 했을 때
                     elif abs(footlmList[15][1] - x_enemy) < 30 and abs(footlmList[15][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2812,6 +3251,7 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
                     # 손으로 감지 했을 때
                     elif abs(footlmList[16][1] - x_enemy) < 30 and abs(footlmList[16][2] - y_enemy) < 30:
                         x_enemy, y_enemy = 1000, 1000
@@ -2820,6 +3260,7 @@ def clicker():
                         note_count = 15
                         mp3_time += 1
                         score = score - 1
+                        cal = cal + 0.3
 
 
                 image = cv2.flip(image, 1)
@@ -2828,21 +3269,56 @@ def clicker():
 
                 font = cv2.FONT_HERSHEY_SIMPLEX
                 color = (255, 0, 255)
+<<<<<<< Updated upstream
                 text = cv2.putText(image, "Score", (480, 30), font, 1, color, 4, cv2.LINE_AA)
                 text = cv2.putText(image, str(score), (590, 30), font, 1, color, 4, cv2.LINE_AA)
 
+=======
+
+
+                # Display Class
+                cv2.rectangle(image, (470,0), (640, 60), (16, 117, 245), -1)
+                cv2.putText(image, 'CAL'
+                            , (560,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(image, str(cal)
+                            , (560,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
+                # Display Probability
+                cv2.putText(image, 'SCORE'
+                            , (485,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(image, str(score)
+                            , (485,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+
+            else:
+                wording = "Please Appear On The Screen"
+                coords = (80, 250)
+                cv2.rectangle(image, (coords[0], coords[1] + 5), (coords[0] + len(wording) * 18, coords[1] - 30),
+                              (230, 230, 230), -1)
+                cv2.putText(image, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+>>>>>>> Stashed changes
 
                 # FPS Counter logic
                 currTime = time.time()
                 fps = 1 / (currTime - prevTime)
                 prevTime = currTime
 
+<<<<<<< Updated upstream
                 if record:
                     out.write(image)
                                         
                 image = cv2.resize(image, (0,0), fx=0.8, fy=0.8)
                 image = image_resize(image = image, width = 900)
                 stframe.image(image, channels = 'BGR', use_column_width = 'auto')
+=======
+            # if record:
+            #     out.write(image)
+
+            image = cv2.resize(image, (0, 0), fx=0.8, fy=0.8)
+            image = image_resize(image=image, width=900)
+            stframe.image(image, channels='BGR', use_column_width='auto')
+>>>>>>> Stashed changes
 
 
 app.run()

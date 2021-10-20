@@ -64,6 +64,13 @@ lunge_select_count = 0
 kneeup_select_count = 0
 sll_select_count = 0
 
+total_cal = 0
+
+squat_cal = 0
+lunge_cal = 0
+kneeup_cal = 0
+sll_cal = 0
+
 pTime = 0
 dir = 0 
 
@@ -248,7 +255,7 @@ while True:
                         sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
-                        cal += 55
+                        squat_cal += 55
                         HP += difficulty
 
                 # Draw bar
@@ -258,11 +265,11 @@ while True:
                             cv2.LINE_AA, 0.8, color, 2)        
         
                 # Display Class
-                cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                 cv2.putText(seg, 'COUNT'
-                            , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(int(total_count))
-                            , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
                 # Display Probability
                 cv2.putText(seg, 'HP'
@@ -270,6 +277,14 @@ while True:
                 cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
+                # Calorie Counting
+                cv2.putText(seg, 'cal'
+                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(seg, str(squat_cal)
+                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
+
+
             elif app_mode == "lunge":
                 print("lunge mode activate")
                 if pose_lmList[11][3] > pose_lmList[12][3]:
@@ -321,7 +336,7 @@ while True:
                         sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
-                        cal += 33
+                        lunge_cal += 33
                         HP += difficulty
 
                 # Draw bar
@@ -331,11 +346,11 @@ while True:
                             cv2.LINE_AA, 0.8, color, 2)        
         
                 # Display Class
-                cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                 cv2.putText(seg, 'COUNT'
-                            , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(int(total_count))
-                            , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
                 # Display Probability
                 cv2.putText(seg, 'HP'
@@ -343,6 +358,13 @@ while True:
                 cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
+                # Calorie Counting
+                cv2.putText(seg, 'cal'
+                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(seg, str(lunge_cal)
+                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
+
             elif app_mode == "knee up":
                 print("knee up mode activate")
                 if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -397,7 +419,7 @@ while True:
                         sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
-                        cal += 33
+                        kneeup_cal += 33
                         HP += difficulty
 
                 # Draw bar
@@ -407,18 +429,25 @@ while True:
                             cv2.LINE_AA, 0.8, color, 2)        
         
                 # Display Class
-                cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                 cv2.putText(seg, 'COUNT'
-                            , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(int(total_count))
-                            , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+                # Calorie Counting
+                cv2.putText(seg, 'cal'
+                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(seg, str(kneeup_cal)
+                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
+
             elif app_mode == "side lateral raise":
                 print("side lateral raise mode activate")
                 if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -464,7 +493,7 @@ while True:
                         sounds["get_score"].play()
                         total_count += 0.5
                         dir = 0
-                        cal += 33
+                        sll_cal += 33
                         HP += difficulty
 
                 # Draw bar
@@ -474,27 +503,36 @@ while True:
                             cv2.LINE_AA, 0.8, color, 2)        
         
                 # Display Class
-                cv2.rectangle(seg, (0,0), (170, 60), (16, 117, 245), -1)
+                cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
                 cv2.putText(seg, 'COUNT'
-                            , (90,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(int(total_count))
-                            , (90,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
                 # Display Probability
                 cv2.putText(seg, 'HP'
                             , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
                 cv2.putText(seg, str(HP)
                             , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                    
+
+                # Calorie Counting
+                cv2.putText(seg, 'cal'
+                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(seg, str(sll_cal)
+                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                
+
             seg[0:50, 540:640] = header_5
 
 
         elif mode == "select":
 
+            total_cal = squat_cal + lunge_cal + kneeup_cal + sll_cal
+
             wording = "Total Calories : "
             coords = (10, 50)
             cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-            cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+            cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
 
             header_5 = overlayList[9]
         # Checking for the click
