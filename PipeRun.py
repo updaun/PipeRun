@@ -2656,9 +2656,9 @@ def clicker():
                 # Display Class
                 cv2.rectangle(image, (470,0), (640, 60), (16, 117, 245), -1)
                 cv2.putText(image, 'CAL'
-                            , (560,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(image, str(cal)
-                            , (560,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                            , (550,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+                cv2.putText(image, str(round(cal, 1))
+                            , (550,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
                 # Display Probability
                 cv2.putText(image, 'SCORE'
