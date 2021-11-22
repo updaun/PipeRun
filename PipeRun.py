@@ -1147,8 +1147,8 @@ def pipe_run_challenger():
 
                                 total_angle = left_angle + left_core_angle + right_angle + right_core_angle
                                 # cv2.putText(img, str(int(total_angle)), (100,100), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-                                per = np.interp(total_angle, (50, 300), (0, 100))
-                                bar = np.interp(total_angle, (50, 300), (450, 100))
+                                per = np.interp(total_angle, (70, 300), (0, 100))
+                                bar = np.interp(total_angle, (70, 300), (450, 100))
                                 
                         # if pose_lmList[11][3] > pose_lmList[12][3]:
                         elif right_hand_x > left_shoulder_x and right_shoulder_x < left_hand_x:
@@ -1310,8 +1310,8 @@ def pipe_run_challenger():
                             
                             # cv2.putText(img, str(int(total_angle)), (100,100), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
 
-                        per = np.interp(total_angle, (150, 200), (0, 100))
-                        bar = np.interp(total_angle, (150, 200), (450, 100))
+                        per = np.interp(total_angle, (170, 200), (0, 100))
+                        bar = np.interp(total_angle, (170, 200), (450, 100))
                         
                         
                         # Check for the curls
@@ -2140,10 +2140,9 @@ def clicker():
                 image[3:33, 5:35] = hp_cal_header
 
                 
-                cv2.rectangle(image, (38, 8), (332, 30), (255, 255, 255), 1)
                 if cal > 0:
-                    cv2.rectangle(image, (40, 10), (40 + int(cal)*3, 28), (16, 117, np.random.randint(230,255)), cv2.FILLED)
-
+                    cv2.rectangle(image, (40, 10), (40 + int(cal*5)*3, 28), (16, 117, np.random.randint(230,255)), cv2.FILLED)
+                cv2.rectangle(image, (38, 8), (332, 30), (255, 255, 255), 2)
 
 
             else:
