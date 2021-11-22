@@ -17,7 +17,7 @@ bg_filter = sm.SegmentationFilter()
 fontpath = "fonts/CarterOne-Regular.ttf"
 font = ImageFont.truetype(fontpath, 35)
 
-folderPath = "examples/Header_Angle"
+folderPath = "examples/Header_Challenger"
 backgroundfolderPath = "examples/background"
 myList = os.listdir(folderPath)
 background_myList = os.listdir(backgroundfolderPath)
@@ -60,7 +60,12 @@ header_4 = overlayList[6]
 header_5 = overlayList[8]
 header = overlayList[10]
 
+hp_header = overlayList[16]
+cal_header = overlayList[17]
+
 total_count = 0
+
+combo_display_count = 0
 
 squat_select_count = 0
 lunge_select_count = 0
@@ -259,6 +264,9 @@ while True:
                     if dir == 1:
                         sounds["get_score"].play()
                         total_count += 0.5
+                        combo_display_count = 20
+                        combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
                         dir = 0
                         cal += 55
                         HP += difficulty
@@ -320,6 +328,9 @@ while True:
                     if dir == 1:
                         sounds["get_score"].play()
                         total_count += 0.5
+                        combo_display_count = 20
+                        combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
                         dir = 0
                         cal += 33
                         HP += difficulty
@@ -383,6 +394,9 @@ while True:
                     if dir == 1:
                         sounds["get_score"].play()
                         total_count += 0.5
+                        combo_display_count = 20
+                        combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
                         dir = 0
                         cal += 33
                         HP += difficulty
@@ -439,6 +453,9 @@ while True:
                     if dir == 1:
                         sounds["get_score"].play()
                         total_count += 0.5
+                        combo_display_count = 20
+                        combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
                         dir = 0
                         cal += 33
                         HP += difficulty
@@ -449,22 +466,43 @@ while True:
                 cv2.putText(seg, f'{int(per)}%', (565, 80),
                             cv2.LINE_AA, 0.8, color, 2)        
         
-            cv2.rectangle(seg, (0, 0), (350, 70), (230, 230, 230), cv2.FILLED)        
-            cv2.putText(seg, 'HP'
-                            , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            cv2.rectangle(seg, (28, 28), (332, 50), (0, 0, 0), 2)
-            cv2.rectangle(seg, (30, 30), (30 + int(HP)*3, 48), hp_color, cv2.FILLED)
+            # cv2.rectangle(seg, (0, 0), (345, 70), (255, 255, 255), cv2.FILLED)        
+            # cv2.putText(seg, 'HP'
+            #                 , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            cv2.rectangle(seg, (38, 8), (332, 30), (0, 0, 0), 2)
+            if HP > 0:
+                cv2.rectangle(seg, (40, 10), (40 + int(HP)*3, 28), hp_color, cv2.FILLED)
+
+            cv2.rectangle(seg, (38, 43), (332, 65), (0, 0, 0), 2)
+            if cal > 0:
+                cv2.rectangle(seg, (40, 45), (40 + int(cal * 0.01)*3, 63), (16, 117, 245), cv2.FILLED)
+
+            # combo display
+            if combo_display_count > 0 :
+                wording = f'{int(total_count)} Combo!'
+                img_pil = Image.fromarray(seg)
+                draw = ImageDraw.Draw(img_pil)
+                draw.text(combo_coords, f'{wording}', font=font, fill=combo_color)
+                seg = np.array(img_pil)
+                combo_display_count -= 1
+
             seg[0:50, 540:640] = header_5
+            seg[5:35, 5:35] = hp_header
+            seg[40:70, 5:35] = cal_header
 
 
         elif mode == "select":
-
-            wording = "Total Calories : "
-            coords = (130, 120)
-            cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-            cv2.putText(seg, wording + str(cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+            wording = f"Total Calories : {int(cal*0.001)}"
+            coords = (70, 215)
+            cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+            cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+            img_pil = Image.fromarray(seg)
+            draw = ImageDraw.Draw(img_pil)
+            draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+            seg = np.array(img_pil)
 
             header_5 = overlayList[9]
+            
             
             # header = cv2.imread('examples\Header\mute.png/mute.png')
             
@@ -558,6 +596,7 @@ while True:
             seg[290:390, 540:640] = header_4
             seg[0:50, 540:640] = header_5
             seg[0:50, 0:100] = header
+            
 
             
             
@@ -576,9 +615,13 @@ while True:
 
     else:
         wording = "Please Appear On The Screen"
-        coords = (80, 250)
-        cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
-        cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+        coords = (50, 220)
+        cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+        cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+        img_pil = Image.fromarray(seg)
+        draw = ImageDraw.Draw(img_pil)
+        draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+        seg = np.array(img_pil)
 
 
         cv2.imshow("Image", seg)  

@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import tempfile
 import time
-from PIL import Image
+from PIL import ImageFont, ImageDraw, Image
 import tensorflow as tf
 
 import os
@@ -324,552 +324,6 @@ def about_App():
     ''')
 
 ############################################################################################################################################################
-# @app.addapp(title='Running Detection')
-def running_Detection():
-    global last_action
-
-    # Load TFLite model and allocate tensors.
-    interpreter = tf.lite.Interpreter(model_path="models/running_modelss.tflite")
-    interpreter.allocate_tensors()
-
-    # Get input and output tensors.last_action
-    input_details = interpreter.get_input_details()
-    output_details = interpreter.get_output_details()
-
-    seq = []
-    action_seq = []
-    last_action = None
-    seq_length = 30
-    actions = ['run', 'stop']
-
-    video_file_buffer = st.file_uploader("Upload a Video", type=['mp4', 'mov', 'avi', 'asf', 'm4v'])
-    # Layout
-    col1, col2 = st.columns(2)
-
-    with col1:
-        use_webcam = st.button('Use Webcam')
-        record = st.checkbox("Record Video")
-
-
-    with col2:
-        my_expander = st.expander("Settings", expanded=False)
-        with my_expander:
-            max_faces = st.number_input('Maximum Number of Face', value=2, min_value=1)
-            st.markdown('---')
-            detection_confidence = st.slider('Min Detection Confidence', min_value=0.0, max_value=1.0, value=0.5)
-            tracking_confidence = st.slider('Min Tracking Confidence', min_value=0.0, max_value=1.0, value=0.5)
-            st.markdown('---')
-
-
-    st.set_option('deprecation.showfileUploaderEncoding', False)
-
-    if record:
-        st.checkbox("Recording", value=True)
-
-
-    st.markdown(
-        """
-        <style>
-        [data-testid="stSidebar"][aria-expanded="true"] > div:first-child{
-            width:350px
-        }
-        [data-testid="stSidebar"][aria-expanded="false"] > div:first-child{
-            width:350px
-            margin-left: -350px
-        }
-        </style>
-        """,
-
-        unsafe_allow_html=True,
-    )
-
-
-    st.markdown('## Output')
-
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col1:
-        st.write('')
-    with col2:
-        stframe = st.empty()
-    with col3:
-        st.write('')
-
-    st.markdown('---')
-
-    tffile = tempfile.NamedTemporaryFile(delete=False)
-
-    ## We get out input video here
-    if not video_file_buffer:
-        if use_webcam:
-            vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        else:
-            vid = cv2.VideoCapture(DEMO_VIDEO_RUNNING)
-            tffile.name = DEMO_VIDEO_RUNNING
-
-    else:
-        tffile.write(video_file_buffer.read())
-        vid = cv2.VideoCapture(tffile.name)
-
-    width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-    fps_input = int(vid.get(cv2.CAP_PROP_FPS))
-
-    # Recording Part
-    codec = cv2.VideoWriter_fourcc(*'mp4v')
-    # codec = cv2.VideoWriter_fourcc('M', 'J', 'P', 'G')
-    out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
-
-
-    st.text("Input Video")
-    st.video(tffile.name)
-
-    fps = 0
-    i = 0
-
-    drawing_spec = mp_drawing.DrawingSpec(thickness=2, circle_radius=1)
-
-    kpi1, kpi2, kpi3 = st.columns(3)
-    # kpi1, kpi2, kpi3 = st.beta_columns(3)
-
-    with kpi1:
-        st.markdown("**Frame Rate**")
-        kpi1_text = st.markdown("0")
-
-    with kpi2:
-        st.markdown("**Detected Holistic**")
-        kpi2_text = st.markdown("0")
-
-    with kpi3:
-        st.markdown("**Image Width**")
-        kpi3_text = st.markdown("0")
-
-    st.markdown("<hr/>", unsafe_allow_html=True)
-
-    ## Dashboard
-    with mp_holistic.Holistic(
-        static_image_mode=True,
-        min_detection_confidence = detection_confidence,
-        min_tracking_confidence = tracking_confidence
-        ) as holistic:
-
-        prevTime = 0
-
-        ########################################################
-        # mediapipe opencv logic
-        ########################################################
-        while vid.isOpened():
-            i += 1
-            ret, img = vid.read()
-            if not ret:
-                continue
-
-            results = holistic.process(img)
-            img.flags.writeable = True
-
-            face_count = 0
-
-            if results.pose_landmarks is not None:
-                joint = np.zeros((33, 4))
-                for j, lm in enumerate(results.pose_landmarks.landmark):
-                    joint[j] = [lm.x, lm.y, lm.z, lm.visibility]
-
-                # Compute angles between joints
-                v1 = joint[[0,0,1,2,3,4,5,6,7,8,9,10,11,11,12,12,13,14,15,15,15,16,16,16,17,18,19,20,21,22,23,24,25,26,27,27,28,28,29,30,31,32], :3] # Parent joint
-                v2 = joint[[1,4,2,3,7,5,6,8,3,6,0, 0,13,23,14,24,15,16,21,19,17,22,20,18,19,20,15,16,15,16,25,26,27,28,31,29,32,30,31,32,27,28], :3] # Child joint
-
-                v = v2 - v1 # [20, 3]
-                # Normalize v
-                v = v / np.linalg.norm(v, axis=1)[:, np.newaxis]
-
-                # Get angle using arcos of dot product
-                angle = np.arccos(np.einsum('nt,nt->n',
-                            v[[0,1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],:],
-                            v[[1,2,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41],:]))
-
-                angle = np.degrees(angle) / 360 # Convert radian to degree
-
-                d = np.concatenate([joint.flatten(), angle])
-
-                seq.append(d)
-
-
-                if len(seq) < seq_length:
-                    continue
-
-                # Test model on random input data.
-                # input_shape = input_details[0]['shape']
-                # input_data = np.array(np.random.random_sample(input_shape), dtype=np.float32)
-
-                # 시퀀스 데이터와 넘파이화
-                input_data = np.expand_dims(np.array(seq[-seq_length:], dtype=np.float32), axis=0)
-                input_data = np.array(input_data, dtype=np.float32)
-
-                # tflite 모델을 활용한 예측
-                interpreter.set_tensor(input_details[0]['index'], input_data)
-                interpreter.invoke()
-
-                y_pred = interpreter.get_tensor(output_details[0]['index'])
-                i_pred = int(np.argmax(y_pred[0]))
-                # conf = y_pred[i_pred]
-
-                # if conf < 0.9:
-                #     continue
-
-                action = actions[i_pred]
-                action_seq.append(action)
-
-                if len(action_seq) < 3:
-                    continue
-
-                this_action = '?'
-                if action_seq[-1] == action_seq[-2] == action_seq[-3]:
-                    this_action = action
-
-                    if last_action != this_action:
-                        last_action = this_action
-
-
-                # cv2.putText(img, f'{this_action.upper()}', org=(int(result.face_landmarks.landmark[0].x * img.shape[1]), int(result.face_landmarks.landmark[0].y * img.shape[0] + 20)), fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=1, color=(255, 255, 255), thickness=2)
-                # 도식의 기준 좌표 생성 (왼쪽 귀)
-                coords = tuple(np.multiply(
-                                np.array(
-                                    (results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].x,
-                                        results.pose_landmarks.landmark[mp_holistic.PoseLandmark.LEFT_EAR].y))
-                            , [640,480]).astype(int))
-
-                # 사각형 그리기
-                cv2.rectangle(img,
-                                # 사각형의 왼쪽 위
-                                (coords[0], coords[1]+5),
-                                # 사각형의 오른쪽 아래
-                                (coords[0]+len(this_action)*20, coords[1]-30),
-                                (245, 117, 16), -1) # -1 사각형 안을 가득 채운다.
-                # 어떤 액션인지 글자 표시
-                cv2.putText(img, this_action, coords,
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-                # Get status box
-                cv2.rectangle(img, (0,0), (250, 60), (245, 117, 16), -1)
-
-                # Display Class
-                cv2.putText(img, 'CLASS'
-                            , (95,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(img, this_action.split(' ')[0]
-                            , (90,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-                # Display Probability
-                cv2.putText(img, 'PROB'
-                            , (15,12), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(img, str(round(y_pred[0][np.argmax(y_pred[0])],2))
-                            , (10,40), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-
-            # FPS Counter logic
-            currTime = time.time()
-            fps = 1 / (currTime - prevTime)
-            prevTime = currTime
-
-            if record:
-                out.write(img)
-
-            ## Dashboard
-            kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{int(fps)}</h1>", unsafe_allow_html=True)
-            kpi2_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
-            kpi3_text.write(f"<h1 style='text-align: center; color:red;'>{width}</h1>", unsafe_allow_html=True)
-
-            img = cv2.resize(img, (0,0), fx=0.8, fy=0.8)
-            img = image_resize(image = img, width = 640)
-            stframe.image(img, channels = 'BGR', use_column_width = True)
-
-
-        ########################################################
-        # End mediapipe opencv logic
-        ########################################################
-
-        ## Holistic Landmark Drawing
-        # for holistic_landmarks in results.face_landmarks:
-        # face_count += 1
-
-
-
-            # kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
-        st.subheader('Output Image')
-        # st.image(out_image, use_column_width=True)
-
-############################################################################################################################################################
-
-# @app.addapp(title='Run on Image')
-def run_on_Image():
-    drawing_spec = mp_drawing.DrawingSpec(thickness=2, circle_radius=1)
-
-    st.markdown('---')
-
-    st.markdown(
-        """
-        <style>
-        [data-testid="stSidebar"][aria-expanded="true"] > div:first-child{
-            width:350px
-        }
-        [data-testid="stSidebar"][aria-expanded="false"] > div:first-child{
-            width:350px
-            margin-left: -350px
-        }
-        </style>
-        """,
-
-        unsafe_allow_html=True,
-    )
-
-    st.markdown("**Detected Faces, Hands and Pose**")
-    kpi1_text = st.markdown("0")
-
-    max_faces = st.number_input('Maximum Number of Face', value=2, min_value=1)
-    st.markdown('---')
-    detection_confidence = st.slider('Min Detection Confidence', min_value=0.0, max_value=1.0, value=0.5)
-    st.markdown('---')
-
-    img_file_buffer = st.file_uploader("Upload an Image", type=["jpg", "jpeg", "png"])
-    if img_file_buffer is not None:
-        image = np.array(Image.open(img_file_buffer))
-
-    else:
-        demo_image = DEMO_IMAGE
-        image = np.array(Image.open(demo_image))
-
-    st.text('Original Image')
-    st.image(image)
-
-    face_count = 0
-
-    ##Dashboard
-    with mp_holistic.Holistic(
-        static_image_mode=True,
-        min_detection_confidence = detection_confidence
-        ) as holistic:
-
-        results = holistic.process(image)
-        out_image = image.copy()
-
-        ## Holistic Landmark Drawing
-        # for holistic_landmarks in results.face_landmarks:
-        face_count += 1
-
-        # mp_drawing.draw_landmarks(
-        #     image = out_image,
-        #     landmark_list = results.pose_landmarks,
-        #     connections = mp_holistic.POSE_CONNECTIONS,
-        #     landmark_drawing_spec = drawing_spec
-        # )
-        if results.pose_landmarks:
-            face_count += 1
-            mp_drawing.draw_landmarks(
-                out_image, results.face_landmarks, mp_holistic.FACE_CONNECTIONS)
-            mp_drawing.draw_landmarks(
-                out_image, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
-            mp_drawing.draw_landmarks(
-                out_image, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-            mp_drawing.draw_landmarks(
-                out_image, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-
-            # kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
-        st.subheader('Output Image')
-        st.image(out_image, use_column_width=True)
-
-
-# @app.addapp(title='Run on Video')
-def run_on_Video():
-    global codec, out
-
-    video_file_buffer = st.file_uploader("Upload a Video", type=['mp4', 'mov', 'avi', 'asf', 'm4v'])
-    # Layout
-    col1, col2 = st.columns(2)
-
-    with col1:
-        use_webcam = st.button('Use Webcam')
-        record = st.checkbox("Record Video")
-
-
-    with col2:
-        my_expander = st.expander("Settings", expanded=False)
-        with my_expander:
-            max_faces = st.number_input('Maximum Number of Face', value=2, min_value=1)
-            st.markdown('---')
-            detection_confidence = st.slider('Min Detection Confidence', min_value=0.0, max_value=1.0, value=0.5)
-            tracking_confidence = st.slider('Min Tracking Confidence', min_value=0.0, max_value=1.0, value=0.5)
-            st.markdown('---')
-
-
-    st.set_option('deprecation.showfileUploaderEncoding', False)
-
-    if record:
-        st.checkbox("Recording", value=True)
-
-
-    st.markdown(
-        """
-        <style>
-        [data-testid="stSidebar"][aria-expanded="true"] > div:first-child{
-            width:350px
-        }
-        [data-testid="stSidebar"][aria-expanded="false"] > div:first-child{
-            width:350px
-            margin-left: -350px
-        }
-        </style>
-        """,
-
-        unsafe_allow_html=True,
-    )
-
-    # max_faces = st.number_input('Maximum Number of Face', value=2, min_value=1)
-    # st.markdown('---')
-    # detection_confidence = st.slider('Min Detection Confidence', min_value=0.0, max_value=1.0, value=0.5)
-    # tracking_confidence = st.slider('Min Tracking Confidence', min_value=0.0, max_value=1.0, value=0.5)
-    # st.markdown('---')
-
-    st.markdown('## Output')
-
-    col1, col2, col3 = st.columns([1, 4, 1])
-    with col1:
-        st.write('')
-    with col2:
-        stframe = st.empty()
-    with col3:
-        st.write('')
-
-    st.markdown('---')
-    
-    tffile = tempfile.NamedTemporaryFile(delete=False)
-
-    ## We get out input video here
-    if not video_file_buffer:
-        if use_webcam:
-            vid = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        else:
-            vid = cv2.VideoCapture(DEMO_VIDEO)
-            tffile.name = DEMO_VIDEO
-
-    else:
-        tffile.write(video_file_buffer.read())
-        vid = cv2.VideoCapture(tffile.name)
-
-    width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-
-    fps_input = int(vid.get(cv2.CAP_PROP_FPS))
-
-    # Recording Part
-    codec = cv2.VideoWriter_fourcc(*'mp4v')
-    # codec = cv2.VideoWriter_fourcc(*'M', 'J', 'P', 'G')
-    out = cv2.VideoWriter('output1.mp4', codec, fps_input, (width, height))
-
-    st.text("Input Video")
-    st.video(tffile.name)
-
-    fps = 0
-    i = 0
-
-    drawing_spec = mp_drawing.DrawingSpec(thickness=2, circle_radius=1)
-
-    kpi1, kpi2, kpi3 = st.columns(3)
-    # kpi1, kpi2, kpi3 = st.beta_columns(3)
-
-    with kpi1:
-        st.markdown("**Frame Rate**")
-        kpi1_text = st.markdown("0")
-
-    with kpi2:
-        st.markdown("**Detected Holistic**")
-        kpi2_text = st.markdown("0")
-
-    with kpi3:
-        st.markdown("**Image Width**")
-        kpi3_text = st.markdown("0")
-
-    st.markdown("<hr/>", unsafe_allow_html=True)
-
-    ## Dashboard
-    with mp_holistic.Holistic(
-        static_image_mode=True,
-        min_detection_confidence = detection_confidence,
-        min_tracking_confidence = tracking_confidence
-        ) as holistic:
-
-        prevTime = 0
-
-        ########################################################
-        # mediapipe opencv logic
-        ########################################################
-        while vid.isOpened():
-            i += 1
-            ret, frame = vid.read()
-            if not ret:
-                continue
-
-            results = holistic.process(frame)
-            frame.flags.writeable = True
-
-            face_count = 0
-
-            if results.pose_landmarks:
-                face_count += 1
-                mp_drawing.draw_landmarks(
-                    frame, results.face_landmarks, mp_holistic.FACE_CONNECTIONS)
-                mp_drawing.draw_landmarks(
-                    frame, results.pose_landmarks, mp_holistic.POSE_CONNECTIONS)
-                mp_drawing.draw_landmarks(
-                    frame, results.left_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-                mp_drawing.draw_landmarks(
-                    frame, results.right_hand_landmarks, mp_holistic.HAND_CONNECTIONS)
-
-                # mp_drawing.draw_landmarks(
-                # image = frame,
-                # landmark_list = results.pose_landmarks,
-                # connections = mp_holistic.POSE_CONNECTIONS,
-                # landmark_drawing_spec = drawing_spec,
-                # connection_drawing_spec = drawing_spec)
-
-            # FPS Counter logic
-            currTime = time.time()
-            fps = 1 / (currTime - prevTime)
-            prevTime = currTime
-
-            if record:
-                out.write(frame)
-
-            ## Dashboard
-            kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{int(fps)}</h1>", unsafe_allow_html=True)
-            kpi2_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
-            kpi3_text.write(f"<h1 style='text-align: center; color:red;'>{width}</h1>", unsafe_allow_html=True)
-
-            frame = cv2.resize(frame, (0,0), fx=0.8, fy=0.8)
-            frame = image_resize(image = frame, width = 640)
-            stframe.image(frame, channels = 'BGR', use_column_width = True)
-
-        ########################################################
-        # End mediapipe opencv logic
-        ########################################################
-
-        ## Holistic Landmark Drawing
-        # for holistic_landmarks in results.face_landmarks:
-        # face_count += 1
-
-
-
-            # kpi1_text.write(f"<h1 style='text-align: center; color:red;'>{face_count}</h1>", unsafe_allow_html=True)
-        st.subheader('Output Image')
-        # st.image(out_image, use_column_width=True)
-
-
-# @app.addapp(title='Music')
-def music():
-    with st.beta_expander("Upload MP3, MP4 Files"):
-        st.file_uploader("Select MP3, MP4 Files:",
-                                    accept_multiple_files=True,
-                                    type=['mp3','mp4'])
-
-
 @app.addapp(title='Hi PipeRunner')
 def piperun_selectmode_tflite_mod():
 
@@ -959,7 +413,10 @@ def piperun_selectmode_tflite_mod():
         input_details = interpreter_1.get_input_details()
         output_details = interpreter_1.get_output_details()
 
-        folderPath = "examples\Header"
+        fontpath = "fonts/CarterOne-Regular.ttf"
+        font = ImageFont.truetype(fontpath, 35)
+
+        folderPath = "examples\Header_Piperunner"
         myList = os.listdir(folderPath)
         # print(myList)
 
@@ -993,10 +450,20 @@ def piperun_selectmode_tflite_mod():
         header_5 = overlayList[8]
         header_6 = overlayList[12]
 
+        hp_header = overlayList[14]
+        cal_header = overlayList[15]
+        hp_cal_header = overlayList[16]
+
         running_select_count = 0
         walking_select_count = 0
         jumping_select_count = 0
         airrope_select_count = 0
+
+        combo_display_count = 0
+        combo_count = 0
+        combo = 0
+
+        word_display_count = 0
 
         # HP, kcal 초기 값
         my_HP = 100 
@@ -1015,9 +482,13 @@ def piperun_selectmode_tflite_mod():
         sounds["bgm"].set_volume(0.2)
         sounds["bgm"].play() # bgm
 
+        sounds["pose_ok"] = pygame.mixer.Sound("examples\Assets\Sounds\pose_ok.wav")  # 재생할 파일 설정
+        sounds["pose_ok"].set_volume(0.5)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+        sounds["get_score"] = pygame.mixer.Sound("examples\Assets\Sounds\get_score.wav")  # 재생할 파일 설정
+        sounds["get_score"].set_volume(0.5)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+
         mute_count = 0
         mute_dir = 0
-       
         ## Dashboard
         prevTime = 0
 
@@ -1028,6 +499,13 @@ def piperun_selectmode_tflite_mod():
             success, img = vid.read()
             if not success:
                 continue
+
+            if my_HP < 30:
+                hp_color = (0, 0, np.random.randint(180,200))
+            elif my_HP < 60:
+                hp_color = (0, np.random.randint(180,200), 200)
+            else:
+                hp_color = (0, np.random.randint(180,200), 0)
 
             # 사용자 인식을 위해 Filp
             img = cv2.flip(img, 1)
@@ -1109,6 +587,7 @@ def piperun_selectmode_tflite_mod():
                         if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
                             my_HP += 0.18
                             walk_cal += 4.0
+                            combo_count += 1
                     elif app_mode == "running":
                         print("running mode activate")
                         interpreter_2.set_tensor(input_details[0]['index'], input_data)
@@ -1118,7 +597,8 @@ def piperun_selectmode_tflite_mod():
 
                         if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
                             my_HP += 0.18
-                            walk_cal += 8.0
+                            run_cal += 8.0
+                            combo_count += 1
                     elif app_mode == "jumping":
                         print("jumping mode activate")
                         interpreter_3.set_tensor(input_details[0]['index'], input_data)
@@ -1128,7 +608,8 @@ def piperun_selectmode_tflite_mod():
 
                         if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
                             my_HP += 0.18
-                            walk_cal += 5.5
+                            jump_cal += 5.5
+                            combo_count += 1
                     elif app_mode == "air rope":
                         print("air rope mode activate")
                         cv2.line(seg, (100, 460), (540,460), (0,0,200), 2)
@@ -1140,12 +621,18 @@ def piperun_selectmode_tflite_mod():
 
                             if this_action.split(' ')[0] == 'fit' and round(y_pred[0][np.argmax(y_pred[0])]) >= 0.5:
                                 my_HP += 0.18
-                            walk_cal += 5.5
+                                rope_cal += 5.5
+                                combo_count += 1
                         else:
                             wording = "Please Show Your Feet"
-                            coords = (130, 250)
-                            cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
-                            cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                            coords = (110, 170)
+                            cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+407, coords[1]+52), (0, 0, 0), 2)
+                            cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+405, coords[1]+50), (255, 255, 255), -1) 
+                            img_pil = Image.fromarray(seg)
+                            draw = ImageDraw.Draw(img_pil)
+                            draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                            seg = np.array(img_pil)
+
                     if wording != 'Please Show Your Feet':
                         my_HP -= 0.1
                     if my_HP > 100:
@@ -1157,38 +644,71 @@ def piperun_selectmode_tflite_mod():
                     if my_HP <= 0:
                         wording = "GO! RUN! GO! RUN!"
                         coords = (160, 250)
-                        cv2.rectangle(seg, (coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1)  
-                        cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                        cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+327, coords[1]+52), (0, 0, 0), 2)
+                        cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+325, coords[1]+50), (255, 255, 255), -1) 
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                        seg = np.array(img_pil)
                         my_HP = 0   
 
-                    seg[0:50, 540:640] = header_5
+                    total_cal = walk_cal + run_cal + jump_cal + rope_cal
+                    if combo_count == 40:
+                        combo += 1
+                        combo_display_count = 20
+                        combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        wording = f'{int(combo)} Combo!'
+                        combo_count = 0
+                        sounds["get_score"].play()
+                    elif combo_count == 20:
+                        word_display_count = 20
+                        word_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                        wording_list = ['Good!', 'Nice!', 'Fit!', 'Excellent!', 'Keep Going!']
+                        wording = f'{random.choice(wording_list)}'
+                        sounds["pose_ok"].play()
+                        combo_count += 1
+                        
 
                     # Get status box
-                    cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-        
-                    # Display Class
-                    cv2.putText(seg, 'ACTION'
-                            , (10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                    cv2.putText(seg, this_action.split(' ')[0]
-                            , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                    cv2.putText(seg, 'HP'
-                            , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                    cv2.putText(seg, str(round(my_HP, 1))
-                            , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                    if my_HP > 0:
+                        cv2.rectangle(seg, (40, 8), (32 + int(my_HP)*3, 28), hp_color, cv2.FILLED)
+                    cv2.rectangle(seg, (38, 7), (332, 29), (255, 255, 255), 2)
+                    
+                    if total_cal > 0:
+                        cv2.rectangle(seg, (40, 40), (40 + int(total_cal * 0.02)*3, 60), (16, 117, np.random.randint(230,255)), cv2.FILLED)
+                    cv2.rectangle(seg, (38, 39), (332, 61), (255, 255, 255), 2)
 
-                    total_cal = walk_cal + run_cal + jump_cal + rope_cal
+                    # combo display
+                    if combo_display_count > 0 :
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text(combo_coords, f'{wording}', font=font, fill=combo_color)
+                        seg = np.array(img_pil)
+                        combo_display_count -= 1
 
-                    cv2.putText(seg, 'cal'
-                            , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                    cv2.putText(seg, str(total_cal)
-                            , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                    if word_display_count > 0 :
+                        word_color = (np.random.randint(180, 255),0,0,0)
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text(word_coords, f'{wording}', font=font, fill=word_color)
+                        seg = np.array(img_pil)
+                        word_display_count -= 1
+
+                    seg[0:50, 540:640] = header_5
+                    # seg[5:35, 5:35] = hp_header
+                    # seg[40:70, 5:35] = cal_header
+                    seg[3:69, 5:35] = hp_cal_header
 
                 elif mode == "select":
-                    wording = "Total Calories : "
-                    coords = (130, 120)
-                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-                    cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
+                    wording = f"Total Calories : {int(total_cal*0.001)}"
+                    coords = (70, 215)
+                    cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+                    cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+                    img_pil = Image.fromarray(seg)
+                    draw = ImageDraw.Draw(img_pil)
+                    draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                    seg = np.array(img_pil)
                     if mute_dir == 0:
                         header_6 = overlayList[12] # music_on button activate 
                     else:
@@ -1303,34 +823,22 @@ def piperun_selectmode_tflite_mod():
                     seg[290:390, 540:640] = header_4
                     seg[0:50, 540:640] = header_5
                     seg[0:50, 0:100] = header_6
+                    
             
-                coords = tuple(np.multiply(
-                                np.array(
-                                    (result.pose_landmarks.landmark[7].x+20, 
-                                        result.pose_landmarks.landmark[7].y))
-                            , [640,480]).astype(int))
-                
-
                 # FPS Counter logic
                 currTime = time.time()
                 fps = 1 / (currTime - prevTime)
                 prevTime = currTime
 
-                # if record:
-                #     out.write(seg)
-
-
-                # seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
-                # seg = image_resize(image = seg, width = 900)
-                # stframe.image(seg, channels = 'BGR', use_column_width = 'auto')
-
             else:
                 wording = "Please Appear On The Screen"
-                coords = (80, 250)
-                cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
-                cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
-                # cv2.imshow("Image", seg)  
+                coords = (50, 220)
+                cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+                cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+                img_pil = Image.fromarray(seg)
+                draw = ImageDraw.Draw(img_pil)
+                draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                seg = np.array(img_pil)
 
             seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
             seg = image_resize(image = seg, width = 900)
@@ -1367,13 +875,6 @@ def pipe_run_challenger():
         }
     </style>""", unsafe_allow_html=True)
 
-    
-    # record = st.checkbox("Record Video")
-
-    folderPath = "examples\Header"
-    header = cv2.imread(f'{folderPath}/mute.png')
-
-
     col1, col2, col3 = st.columns([2.18, 1, 2])
     with col1:
         st.write('')
@@ -1408,8 +909,11 @@ def pipe_run_challenger():
 
         detector = hm.HolisticDetector()
         bg_filter = sm.SegmentationFilter()
-            
-        folderPath = "examples/Header_Angle"
+
+        fontpath = "fonts/CarterOne-Regular.ttf"
+        font = ImageFont.truetype(fontpath, 35)
+
+        folderPath = "examples/Header_Challenger"
         backgroundfolderPath = "examples/background"
         myList = os.listdir(folderPath)
         background_myList = os.listdir(backgroundfolderPath)
@@ -1452,7 +956,15 @@ def pipe_run_challenger():
         header_5 = overlayList[8]
         header_6 = overlayList[14]
 
+        hp_header = overlayList[16]
+        cal_header = overlayList[17]
+        hp_cal_header = overlayList[18]
+
         total_count = 0
+
+        combo_display_count = 0
+        word_display_count = 0
+        good_wording = ''
 
         squat_count = 0
         lunge_count = 0
@@ -1547,6 +1059,7 @@ def pipe_run_challenger():
             elif HP == 15:
                 sounds["g4"].play()
             elif HP < 30:
+                hp_color = (0, 0, np.random.randint(180,200))
                 bg_image_path = backgroundList[4]
             elif HP == 30:
                 sounds["g3"].play()
@@ -1555,16 +1068,19 @@ def pipe_run_challenger():
             elif HP == 45:        
                 sounds["g2"].play()
             elif HP < 60:
+                hp_color = (0, np.random.randint(180,200), 200)
                 bg_image_path = backgroundList[2]
             elif HP == 60: 
                 sounds["g1"].play()
             elif HP < 75:
                 bg_image_path = backgroundList[1]
             elif HP == 75:
-                print("test")
                 sounds["g6"].play()
             else:
+                hp_color = (0, np.random.randint(180,200), 0)
                 bg_image_path = backgroundList[0]
+
+
 
 
             if bg_image_path != None:
@@ -1582,8 +1098,8 @@ def pipe_run_challenger():
                 right_shoulder_x = pose_lmList[12][1]
                 left_shoulder_x = pose_lmList[11][1]
 
-                x1, y1 = pose_lmList[20][1:3]
-                x2, y2 = pose_lmList[19][1:3]
+                x1, y1 = pose_lmList[19][1:3]
+                x2, y2 = pose_lmList[20][1:3]
                 foot_x, foot_y = pose_lmList[28][1:3]
 
                 
@@ -1598,9 +1114,13 @@ def pipe_run_challenger():
                     if HP < 0:
                         HP = 0 
                         wording = "Game Over"
-                        coords = (125, 330)
-                        cv2.rectangle(seg,(coords[0], coords[1]-50), (coords[0]+len(wording)*40, coords[1]+20), (230, 230, 230), -1) 
-                        cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 2, (200, 0, 200), 3, cv2.LINE_AA)
+                        coords = (200, 280)
+                        cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+212, coords[1]+52), (0, 0, 0), 2)
+                        cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+210, coords[1]+50), (255, 255, 255), -1) 
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text((200, 280), f'{wording}', font=font, fill=(0,0,0,0))
+                        seg = np.array(img_pil)
 
                     if app_mode == "squat":
                         print("squat mode activate")
@@ -1666,6 +1186,10 @@ def pipe_run_challenger():
                             if dir == 0:
                                 sounds["pose_ok"].play()
                                 squat_count += 0.5
+                                word_display_count = 20
+                                word_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                                wording_list = ['Good!', 'Nice!', 'Fit!', 'Excellent!', 'Keep Going!']
+                                wording = f'{random.choice(wording_list)}'
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
@@ -1673,6 +1197,8 @@ def pipe_run_challenger():
                             if dir == 1:
                                 sounds["get_score"].play()
                                 squat_count += 0.5
+                                combo_display_count = 20
+                                combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
                                 dir = 0
                                 squat_cal += 55
                                 HP += difficulty
@@ -1682,25 +1208,6 @@ def pipe_run_challenger():
                         cv2.rectangle(seg, (570, int(bar)), (610, 450), color, cv2.FILLED)
                         cv2.putText(seg, f'{int(per)}%', (565, 80),
                                     cv2.LINE_AA, 0.8, color, 2)        
-                
-                        # Display Class
-                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-                        cv2.putText(seg, 'COUNT'
-                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(squat_count))
-                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Display Probability
-                        cv2.putText(seg, 'HP'
-                                    , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(HP)
-                                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Calorie Counting
-                        cv2.putText(seg, 'cal'
-                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(squat_cal)
-                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                         
                     elif app_mode == "lunge":
                         print("lunge mode activate")
@@ -1745,6 +1252,10 @@ def pipe_run_challenger():
                             if dir == 0:
                                 sounds["pose_ok"].play()
                                 lunge_count += 0.5
+                                word_display_count = 20
+                                word_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                                wording_list = ['Good!', 'Nice!', 'Fit!', 'Excellent!', 'Keep Going!']
+                                wording = f'{random.choice(wording_list)}'
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
@@ -1752,6 +1263,8 @@ def pipe_run_challenger():
                             if dir == 1:
                                 sounds["get_score"].play()
                                 lunge_count += 0.5
+                                combo_display_count = 20
+                                combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
                                 dir = 0
                                 lunge_cal += 33
                                 HP += difficulty
@@ -1762,25 +1275,6 @@ def pipe_run_challenger():
                         cv2.putText(seg, f'{int(per)}%', (565, 80),
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
-                        # Display Class
-                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-                        cv2.putText(seg, 'COUNT'
-                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(lunge_count))
-                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Display Probability
-                        cv2.putText(seg, 'HP'
-                                    , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(HP)
-                                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Calorie Counting
-                        cv2.putText(seg, 'cal'
-                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(lunge_cal)
-                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
                     elif app_mode == "knee up":
                         print("knee up mode activate")
                         if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -1827,6 +1321,10 @@ def pipe_run_challenger():
                             if dir == 0:
                                 sounds["pose_ok"].play()
                                 kneeup_count += 0.5
+                                word_display_count = 20
+                                word_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                                wording_list = ['Good!', 'Nice!', 'Fit!', 'Excellent!', 'Keep Going!']
+                                wording = f'{random.choice(wording_list)}'
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
@@ -1834,6 +1332,8 @@ def pipe_run_challenger():
                             if dir == 1:
                                 sounds["get_score"].play()
                                 kneeup_count += 0.5
+                                combo_display_count = 20
+                                combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
                                 dir = 0
                                 kneeup_cal += 33
                                 HP += difficulty
@@ -1844,26 +1344,6 @@ def pipe_run_challenger():
                         cv2.putText(seg, f'{int(per)}%', (565, 80),
                                     cv2.LINE_AA, 0.8, color, 2)        
                 
-                        # Display Class
-                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-                        cv2.putText(seg, 'COUNT'
-                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(kneeup_count))
-                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Display Probability
-                        cv2.putText(seg, 'HP'
-                                    , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(HP)
-                                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
-                        # Calorie Counting
-                        cv2.putText(seg, 'cal'
-                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(kneeup_cal)
-                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-
                     elif app_mode == "side lateral raise":
                         print("side lateral raise mode activate")
                         if pose_lmList[11][1] > pose_lmList[12][1]:
@@ -1901,6 +1381,10 @@ def pipe_run_challenger():
                             if dir == 0:
                                 sounds["pose_ok"].play()
                                 sll_count += 0.5
+                                word_display_count = 20
+                                word_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
+                                wording_list = ['Good!', 'Nice!', 'Fit!', 'Excellent!', 'Keep Going!']
+                                good_wording = f'{random.choice(wording_list)}'
                                 dir = 1
                                 HP += difficulty
                         if per == 0:
@@ -1908,6 +1392,8 @@ def pipe_run_challenger():
                             if dir == 1:
                                 sounds["get_score"].play()
                                 sll_count += 0.5
+                                combo_display_count = 20
+                                combo_coords = (np.random.randint(50, 300), np.random.randint(150, 300))
                                 dir = 0
                                 sll_cal += 33
                                 HP += difficulty
@@ -1916,29 +1402,43 @@ def pipe_run_challenger():
                         cv2.rectangle(seg, (570, 100), (610, 450), color, 3)
                         cv2.rectangle(seg, (570, int(bar)), (610, 450), color, cv2.FILLED)
                         cv2.putText(seg, f'{int(per)}%', (565, 80),
-                                    cv2.LINE_AA, 0.8, color, 2)        
-                
-                        # Display Class
-                        cv2.rectangle(seg, (0,0), (330, 60), (16, 117, 245), -1)
-                        cv2.putText(seg, 'COUNT'
-                                    , (110,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(int(sll_count))
-                                    , (100,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
-                        # Display Probability
-                        cv2.putText(seg, 'HP'
-                                    , (15,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(HP)
-                                    , (10,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                                    cv2.LINE_AA, 0.8, color, 2)   
 
-                        # Calorie Counting
-                        cv2.putText(seg, 'cal'
-                                    , (220,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                        cv2.putText(seg, str(sll_cal)
-                                    , (200,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-                        
+                    total_count = squat_count + lunge_count + kneeup_count + sll_count 
+                    total_cal = squat_cal + lunge_cal + kneeup_cal + sll_cal    
+
+                    
+                    if HP > 0:
+                        cv2.rectangle(seg, (40, 8), (40 + int(HP)*3, 28), hp_color, cv2.FILLED)
+                    cv2.rectangle(seg, (38, 7), (332, 29), (255, 255, 255), 2)
+                    
+                    if total_cal > 0:
+                        cv2.rectangle(seg, (40, 40), (40 + int(total_cal * 0.1)*3, 60), (16, 117, np.random.randint(230,255)), cv2.FILLED)
+                    cv2.rectangle(seg, (38, 39), (332, 61), (255, 255, 255), 2)
+
+                    # combo display
+                    if combo_display_count > 0 :
+                        combo_color = (0,np.random.randint(200, 240),np.random.randint(200, 240),0)
+                        wording = f'{int(total_count)} Combo!'
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text(combo_coords, f'{wording}', font=font, fill=combo_color)
+                        seg = np.array(img_pil)
+                        combo_display_count -= 1
+
+                    if word_display_count > 0 :
+                        word_color = (np.random.randint(180, 255),0,0,0)
+                        img_pil = Image.fromarray(seg)
+                        draw = ImageDraw.Draw(img_pil)
+                        draw.text(word_coords, f'{good_wording}', font=font, fill=word_color)
+                        seg = np.array(img_pil)
+                        word_display_count -= 1
 
                     seg[0:50, 540:640] = header_5
+                    # seg[5:35, 5:35] = hp_header
+                    # seg[40:70, 5:35] = cal_header
+                    seg[3:69, 5:35] = hp_cal_header
+
 
 
                 elif mode == "select":
@@ -1948,26 +1448,23 @@ def pipe_run_challenger():
                     else:
                         header_6 = overlayList[14] # mute button activate 
 
-                    total_cal = squat_cal + lunge_cal + kneeup_cal + sll_cal
-
-                    wording = "Total Calories : "
-                    coords = (130, 120)
-                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-                    cv2.putText(seg, wording + str(total_cal), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
-                    total_count = squat_count + lunge_count + kneeup_count + sll_count
-
-                    wording = "Total Counts : "
-                    coords = (130, 200)
-                    cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*20, coords[1]-30), (230, 230, 230), -1) 
-                    cv2.putText(seg, wording + str(int(total_count)), coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
+                    wording = f"Total Calories : {int(total_cal*0.01)}"
+                    coords = (120, 10)
+                    cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+407, coords[1]+52), (0, 0, 0), 2)
+                    cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+405, coords[1]+50), (255, 255, 255), -1) 
+                    img_pil = Image.fromarray(seg)
+                    draw = ImageDraw.Draw(img_pil)
+                    draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                    seg = np.array(img_pil)
+                    
 
                     header_5 = overlayList[9]
-                # Checking for the click
-                    if x1 < 100:
-                        # walking 
-                        if y1<50:
+
+                    # Checking for the click
+                    #exit
+                    if x2 < 100:
+                        if y2<50:
+                            
                             if mute_dir == 0:
                                 header_6 = overlayList[15] # music_on button activate 
                             else:
@@ -1979,8 +1476,6 @@ def pipe_run_challenger():
                                 mute_count = 0
                                 mute_dir = 1
                                 header_6 = overlayList[15]
-
-                                total_count = squat_count + lunge_count + kneeup_count + sll_count
             
                                 new_rows = pd.DataFrame([total_cal])
                                 chart.add_rows(new_rows)
@@ -1988,20 +1483,7 @@ def pipe_run_challenger():
 
                                 break
 
-                            # elif (mute_count == 20) and (mute_dir == 1):
-                            #     sounds["back"].play()
-                            #     mute_count = 0
-                            #     mute_dir = 0
-                            #     header_6 = overlayList[11]
-
-                            #     total_count = squat_count + lunge_count + kneeup_count + sll_count
-            
-                            #     new_rows = pd.DataFrame([total_cal])
-                            #     chart.add_rows(new_rows)
-                            #     last_rows = new_rows
-                                
-                            
-                        if 90<=y1<190:
+                        elif 90<=y2<190:
                             print("squat mode")
                             header_1 = overlayList[1]
                             header_2 = overlayList[2]
@@ -2026,7 +1508,7 @@ def pipe_run_challenger():
                                 last_rows = new_rows
 
                         # running
-                        elif 290<=y1<390:
+                        elif 290<=y2<390:
                             print("lunge mode")
                             header_1 = overlayList[0]
                             header_2 = overlayList[3]
@@ -2050,9 +1532,9 @@ def pipe_run_challenger():
                                 chart.add_rows(new_rows)
                                 last_rows = new_rows
 
-                    elif x2 > 540:
+                    elif x1>540:
                         # jumping
-                        if 90<=y2<190:
+                        if 90<=y1<190:
                             print("knee up mode")
                             header_1 = overlayList[0]
                             header_2 = overlayList[2]
@@ -2077,7 +1559,7 @@ def pipe_run_challenger():
                                 last_rows = new_rows
                             
                         # air rope
-                        elif 290<=y2<390:
+                        elif 290<=y1<390:
                             print("side lateral raise mode")
                             header_1 = overlayList[0]
                             header_2 = overlayList[2]
@@ -2124,11 +1606,13 @@ def pipe_run_challenger():
 
             else:
                 wording = "Please Appear On The Screen"
-                coords = (80, 250)
-                cv2.rectangle(seg,(coords[0], coords[1]+5), (coords[0]+len(wording)*18, coords[1]-30), (230, 230, 230), -1) 
-                cv2.putText(seg, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
-
-                # cv2.imshow("Image", seg)  
+                coords = (50, 220)
+                cv2.rectangle(seg,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+                cv2.rectangle(seg,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+                img_pil = Image.fromarray(seg)
+                draw = ImageDraw.Draw(img_pil)
+                draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                seg = np.array(img_pil)
 
             seg = cv2.resize(seg, (0,0), fx=0.8, fy=0.8)
             seg = image_resize(image = seg, width = 900)
@@ -2211,6 +1695,7 @@ def pipe_run_challenger():
         with col_df_2:
             st.pyplot(fig1)
 
+###################################################################################################
 
 @app.addapp(title='Hi Clicker')
 def clicker():
@@ -2234,7 +1719,10 @@ def clicker():
 
     # record = st.checkbox("Record Video")
 
-    folderPath = "examples/Header"
+    fontpath = "fonts/CarterOne-Regular.ttf"
+    font = ImageFont.truetype(fontpath, 35)
+
+    folderPath = "examples/Header_Clicker"
     myList = os.listdir(folderPath)
 
     # 덮어씌우는 이미지 리스트
@@ -2246,6 +1734,7 @@ def clicker():
         overlayList.append(image)
 
     header_1 = overlayList[12]
+    hp_cal_header = overlayList[14]
 
     col1, col2, col3 = st.columns([1, 1, 1])
     with col1:
@@ -2341,9 +1830,9 @@ def clicker():
         sounds = {}  # 빈 딕셔너리 생성
         pygame.mixer.init()
         sounds["slap"] = pygame.mixer.Sound("examples\Assets\Sounds\slap.wav")  # 재생할 파일 설정
-        sounds["slap"].set_volume(1)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+        sounds["slap"].set_volume(0.8)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["screaming"] = pygame.mixer.Sound("examples\Assets\Sounds\Effect.wav")  # 재생할 파일 설정
-        sounds["screaming"].set_volume(0.4)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
+        sounds["screaming"].set_volume(0.6)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
         sounds["song"] = pygame.mixer.Sound(audio_file_path)  # 재생할 파일 설정
         sounds["song"].set_volume(0.2)  # 볼륨 설정 SOUNDS_VOLUME 0~1 사이의 값을 넣으면 됨
 
@@ -2431,7 +1920,7 @@ def clicker():
                 cv2.circle(image, (x1, y1), 5, (0, 0, 0), 2)
                 cv2.circle(image, (x2, y2), 5, (0, 0, 0), 2)
 
-                if (0 < x1 <= 100 and 0 < y1 <= 50) or (0 < x2 <= 100 and 0 < y2 <= 50):
+                if (540 < x1 <= 640 and 0 < y1 <= 50) or (540 < x2 <= 640 and 0 < y2 <= 50):
                     mute_count += 1
 
                     if mute_dir == 0:
@@ -2647,33 +2136,25 @@ def clicker():
                         score = score - 1
                         cal = cal + 0.3
 
-                image[0:50, 0:100] = header_1
+                image[0:50, 540:640] = header_1
+                image[3:33, 5:35] = hp_cal_header
 
-                font = cv2.FONT_HERSHEY_SIMPLEX
-                color = (255, 0, 255)
-
-
-                # Display Class
-                cv2.rectangle(image, (470,0), (640, 60), (16, 117, 245), -1)
-                cv2.putText(image, 'CAL'
-                            , (550,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(image, str(round(cal, 1))
-                            , (550,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
                 
-                # Display Probability
-                cv2.putText(image, 'SCORE'
-                            , (485,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-                cv2.putText(image, str(score)
-                            , (485,50), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                cv2.rectangle(image, (38, 8), (332, 30), (255, 255, 255), 1)
+                if cal > 0:
+                    cv2.rectangle(image, (40, 10), (40 + int(cal)*3, 28), (16, 117, np.random.randint(230,255)), cv2.FILLED)
 
 
 
             else:
                 wording = "Please Appear On The Screen"
-                coords = (80, 250)
-                cv2.rectangle(image, (coords[0], coords[1] + 5), (coords[0] + len(wording) * 18, coords[1] - 30),
-                              (230, 230, 230), -1)
-                cv2.putText(image, wording, coords, cv2.FONT_HERSHEY_SIMPLEX, 1, (200, 0, 200), 2, cv2.LINE_AA)
+                coords = (50, 220)
+                cv2.rectangle(image,(coords[0]-12, coords[1]-2), (coords[0]+507, coords[1]+52), (0, 0, 0), 2)
+                cv2.rectangle(image,(coords[0]-10, coords[1]), (coords[0]+505, coords[1]+50), (255, 255, 255), -1) 
+                img_pil = Image.fromarray(image)
+                draw = ImageDraw.Draw(img_pil)
+                draw.text(coords, f'{wording}', font=font, fill=(0,0,0,0))
+                image = np.array(img_pil)
 
             # FPS Counter logic
             currTime = time.time()
